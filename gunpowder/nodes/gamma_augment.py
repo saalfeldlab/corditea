@@ -39,13 +39,12 @@ class GammaAugment(BatchFilter):
 
     def process(self, batch, request):
         sample_gamma_min = (max(self.gamma_min, 1./self.gamma_min) - 1)*(-1)**(self.gamma_min < 1)
-        sample_gamma_max = (max(self.gamma_min, 1./self.gamma_max) - 1)*(-1)**(self.gamma_max < 1)
+        sample_gamma_max = (max(self.gamma_max, 1./self.gamma_max) - 1)*(-1)**(self.gamma_max < 1)
         gamma = np.random.uniform(sample_gamma_min, sample_gamma_max)
         if gamma < 0:
-            gamma = 1./(gamma+1)
+            gamma = 1./(-gamma+1)
         else:
             gamma = gamma + 1
-
         for array in self.arrays:
             raw = batch.arrays[array]
 
@@ -57,8 +56,8 @@ class GammaAugment(BatchFilter):
             raw.data = self.__augment(raw.data, gamma)
 
             # clip values, we might have pushed them out of [0,1]
-            raw.data[raw.data>1] = 1
-            raw.data[raw.data<0] = 0
+            raw.data[raw.data > 1] = 1
+            raw.data[raw.data < 0] = 0
 
     def __augment(self, a, gamma):
 
