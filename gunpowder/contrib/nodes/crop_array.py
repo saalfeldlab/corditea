@@ -29,7 +29,6 @@ class CropArray(BatchFilter):
     def __init__(self, key, cropping_widths_neg, cropping_widths_pos):
 
         assert isinstance(key, ArrayKey)
-        print("Cropping_widths_neg", cropping_widths_neg)
         self.key = key
         self.cropping_widths_neg = cropping_widths_neg
         self.cropping_widths_pos = cropping_widths_pos
