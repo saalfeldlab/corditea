@@ -244,19 +244,13 @@ class RandomLocationWithIntegralMask(BatchFilter):
         request_mask_roi = request.array_specs[self.mask_integral].roi
         request_mask_roi = request_mask_roi.shift(random_shift)
 
-        # get coordinates inside mask array
-        mask_voxel_size = self.spec[self.mask_integral].voxel_size
-        request_mask_roi_in_array = request_mask_roi/mask_voxel_size
-        request_mask_roi_in_array -= self.mask_spec.roi.get_offset()/mask_voxel_size
         # get number of masked-in voxels
         num_masked_in = self.__integrate(
-            [request_mask_roi_in_array.get_begin()],
-            [request_mask_roi_in_array.get_end()-(1,)*len(self.spec[self.mask_integral].voxel_size)]
+            request_mask_roi.get_begin(),
+            request_mask_roi.get_end() - self.spec[self.mask_integral].voxel_size
         )[0]
-
-        mask_ratio = float(num_masked_in)/request_mask_roi_in_array.size()
+        mask_ratio = float(num_masked_in)/(request_mask_roi.size()/np.prod(self.spec[self.mask_integral].voxel_size))
         logger.debug("mask ratio is %f", mask_ratio)
-
         return mask_ratio >= self.min_masked
 
 
@@ -326,29 +320,18 @@ class RandomLocationWithIntegralMask(BatchFilter):
         # If 'start_coord - 1' is -ve it is labeled bad and not considered in
         # the final sum.
 
-        #self.mask_spec = self.upstream_spec.array_specs[self.mask_integral]
-        #self.corner_spec = self.upstream_spec.array_specs[self.mask_integral]
-        #self.corner_spec.roi = Roi(offset=(0, 0, 0), shape=(5, 5, 5))
-
-        #mask_request = BatchRequest({self.mask_integral: self.corner_spec})
-        #mask_batch = self.get_upstream_provider().request_batch(mask_request)
-
-        #ii = mask_batch.arrays[self.mask_integral].data
-        #print(start, end)
-        #print(bit_perm)
-
         for i in range(bit_perm):  # for all permutations
             # boolean permutation array eg [True, False] for '10'
-
             binary = bin(i)[2:].zfill(width)
             bool_mask = [bit == '1' for bit in binary]
             sign = (-1) ** sum(bool_mask)  # determine sign of permutation
-
-            bad = [np.any(((start[r] - 1) * bool_mask) < 0)
+            bad = [np.any(((start[r] - self.spec[self.mask_integral].voxel_size) * bool_mask +
+                           end[r] * np.invert(bool_mask) -
+                           self.mask_spec.roi.get_offset()) < 0)
                    for r in range(rows)]  # find out bad start rows
 
             corner_points = (end * (np.invert(bool_mask))) + \
-                            ((start - 1) * bool_mask)  # find corner for each row
+                            ((start-self.spec[self.mask_integral].voxel_size) * bool_mask)  # find corner for each row
 
             ii_cp = []
             for cp, b in zip(corner_points, bad):
@@ -356,7 +339,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
                     ii_cp.append(0)
                 else:
                     corner_spec_roi = self.spec[self.mask_integral].copy()
-                    corner_spec_roi.roi = Roi(offset=tuple(cp*corner_spec_roi.voxel_size),
+                    corner_spec_roi.roi = Roi(offset=tuple(cp),
                                               shape=corner_spec_roi.voxel_size)
                     corner_request = BatchRequest({self.mask_integral: corner_spec_roi})
                     corner = self.get_upstream_provider().request_batch(corner_request)
@@ -531,3 +514,4 @@ class RandomLocationWithIntegralMask(BatchFilter):
                 points.append(self.points.data[i])
 
         return np.array(points)
+
