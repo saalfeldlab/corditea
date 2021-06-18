@@ -11,7 +11,8 @@ VERSION = "0.1.dev1"
 
 REQUIRED = [
     "numpy",
-    "gunpowder"
+    "gunpowder",
+    "scipy"
 ]
 
 EXTRAS = {
