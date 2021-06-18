@@ -2,18 +2,12 @@ import logging
 import numpy as np
 import collections
 
-from gunpowder.batch import Batch
-from gunpowder.coordinate import Coordinate
-from gunpowder.profiling import Timing
-from gunpowder.roi import Roi
-from gunpowder.array import Array, ArrayKey
-from gunpowder.array_spec import ArraySpec
-from .batch_provider import BatchProvider
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
 
-class LambdaSource(BatchProvider):
+class LambdaSource(gp.BatchProvider):
     '''A lambda data source.
 
     Provides arrays using a given function for each array key given. In order to
@@ -44,7 +38,7 @@ class LambdaSource(BatchProvider):
 
         self.func = func
         if not isinstance(array_keys, collections.Iterable):
-            assert isinstance(array_keys, ArrayKey)
+            assert isinstance(array_keys, gp.ArrayKey)
             array_keys = (array_keys,)
         self.array_keys = array_keys
 
@@ -57,10 +51,10 @@ class LambdaSource(BatchProvider):
 
     def provide(self, request):
 
-        timing = Timing(self)
+        timing = gp.profiling.Timing(self)
         timing.start()
 
-        batch = Batch()
+        batch = gp.Batch()
 
         for (array_key, request_spec) in request.array_specs.items():
             logger.debug("Reading %s in %s...", array_key, request_spec.roi)
@@ -78,7 +72,7 @@ class LambdaSource(BatchProvider):
             array_spec.roi = request_spec.roi
 
             # add array to batch
-            batch.arrays[array_key] = Array(self.func(dataset_roi.get_shape()), array_spec)
+            batch.arrays[array_key] = gp.Array(self.func(dataset_roi.get_shape()), array_spec)
 
         logger.debug("done")
 
@@ -92,13 +86,13 @@ class LambdaSource(BatchProvider):
         if array_key in self.array_specs:
             spec = self.array_specs[array_key].copy()
         else:
-            spec = ArraySpec()
+            spec = gp.ArraySpec()
         assert spec.voxel_size is not None, "Voxel size needs to be given"
 
         self.ndims = len(spec.voxel_size)
 
         if spec.roi is None:
-            roi = Roi(Coordinate((0,) * self.ndims), shape=Coordinate((1,)*self.ndims))
+            roi = gp.Roi(gp.Coordinate((0,) * self.ndims), shape=gp.Coordinate((1,)*self.ndims))
             roi.set_shape(None)
             spec.roi = roi
 

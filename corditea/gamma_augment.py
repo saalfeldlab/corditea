@@ -1,9 +1,8 @@
 import numpy as np
-
-from .batch_filter import BatchFilter
+import gunpowder as gp
 from collections import Iterable
 
-class GammaAugment(BatchFilter):
+class GammaAugment(gp.BatchFilter):
     '''Randomly scale and shift the values of an intensity array.
 
     Args:

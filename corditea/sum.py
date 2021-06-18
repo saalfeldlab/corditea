@@ -1,11 +1,10 @@
 import logging
-from gunpowder.array import Array
-from gunpowder.nodes.batch_filter import BatchFilter
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
 
-class Sum(BatchFilter):
+class Sum(gp.BatchFilter):
     '''Combine
 
     Args:
@@ -63,5 +62,5 @@ class Sum(BatchFilter):
             sum_arr += batch.arrays[ak].data
         spec = self.spec[self.sum_array_key].copy()
         spec.roi = request[self.sum_array_key].roi
-        batch.arrays[self.sum_array_key] = Array(sum_arr, spec)
+        batch.arrays[self.sum_array_key] = gp.Array(sum_arr, spec)
 

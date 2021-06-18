@@ -2,14 +2,12 @@ import logging
 import random
 import copy
 
-from .batch_filter import BatchFilter
-from gunpowder.batch_request import BatchRequest
-from gunpowder.profiling import Timing
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
 
-class RejectEfficiently(BatchFilter):
+class RejectEfficiently(gp.BatchFilter):
     '''Reject batches based on the masked-in vs. masked-out ratio.
     Args:
 
@@ -47,7 +45,7 @@ class RejectEfficiently(BatchFilter):
         report_next_timeout = 10
         num_rejected = 0
 
-        timing = Timing(self)
+        timing = gp.profiling.Timing(self)
         timing.start()
 
         assert self.mask in request, (
@@ -57,7 +55,7 @@ class RejectEfficiently(BatchFilter):
         while not have_good_batch:
             upstream_spec = self.upstream_provider.spec
             mask_spec = upstream_spec.array_specs[self.mask]
-            mask_request = BatchRequest({self.mask: mask_spec})
+            mask_request = gp.BatchRequest({self.mask: mask_spec})
             logger.info("requesting only mask: ", mask_spec)
             mask_batch = self.upstream_provider.request_batch(mask_request)
 

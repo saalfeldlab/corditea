@@ -6,15 +6,13 @@ import numpy as np
 import os
 
 from functools import reduce
-from gunpowder.array import ArrayKey, Array
+import gunpowder as gp
 from gunpowder.ext import tensorflow as tf
-from gunpowder.nodes.generic_predict import GenericPredict
-from gunpowder.tensorflow.local_server import LocalServer
 from operator import mul
 
 logger = logging.getLogger(__name__)
 
-class Run(GenericPredict):
+class Run(gp.nodes.generic_predict.GenericPredict):
     '''Tensorflow implementation of :class:`gunpowder.nodes.Predict`.
 
     Args:
@@ -133,7 +131,7 @@ class Run(GenericPredict):
 
                     spec = self.spec[array_key].copy()
                     spec.roi = request[array_key].roi.copy()
-                    batch.arrays[array_key] = Array(
+                    batch.arrays[array_key] = gp.Array(
                         np.zeros(shape, dtype=dtype),
                         spec)
 
@@ -169,7 +167,7 @@ class Run(GenericPredict):
         for array_key in output_tensors:
             spec = self.spec[array_key].copy()
             spec.roi = request[array_key].roi
-            batch.arrays[array_key] = Array(
+            batch.arrays[array_key] = gp.Array(
                 output_data[array_key],
                 spec)
 
@@ -179,7 +177,7 @@ class Run(GenericPredict):
         '''The background predict process.'''
 
         # TODO: is the server still needed?
-        target = LocalServer.get_target()
+        target = gp.tensorflow.LocalServer.get_target()
         logger.info("Initializing tf session, connecting to %s...", target)
 
         self.graph = tf.Graph()
@@ -263,7 +261,7 @@ class Run(GenericPredict):
         inputs = {}
 
         for input_name, input_key in self.inputs.items():
-            if isinstance(input_key, ArrayKey):
+            if isinstance(input_key, gp.ArrayKey):
                 if input_key in batch.arrays:
                     inputs[input_name] = batch.arrays[input_key].data
                 else:

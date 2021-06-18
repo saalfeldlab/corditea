@@ -1,14 +1,10 @@
 import logging
-import numpy as np
-import collections
-from scipy.ndimage.morphology import distance_transform_edt
-from gunpowder.array import Array
-from gunpowder.nodes.batch_filter import BatchFilter
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
 
-class LambdaFilter(BatchFilter):
+class LambdaFilter(gp.BatchFilter):
     '''Apply an aribitrary function to the data in an array.
 
     Args:
@@ -70,4 +66,4 @@ class LambdaFilter(BatchFilter):
 
         spec = self.spec[self.target_key].copy()
         spec.roi = request[self.target_key].roi
-        batch.arrays[self.target_key] = Array(func_output, spec)
+        batch.arrays[self.target_key] = gp.Array(func_output, spec)

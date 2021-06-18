@@ -4,17 +4,10 @@ from random import random, randint, choice
 
 import numpy as np
 from scipy.spatial import KDTree
-from skimage.transform import integral_image, integrate
-from gunpowder.batch_request import BatchRequest
-from gunpowder.coordinate import Coordinate
-from gunpowder.points import Points
-from gunpowder.points_spec import PointsSpec
-from gunpowder.roi import Roi
-from .batch_filter import BatchFilter
-
+import gunpowder as gp
 logger = logging.getLogger(__name__)
 
-class RandomLocationWithIntegralMask(BatchFilter):
+class RandomLocationWithIntegralMask(gp.BatchFilter):
     '''Choses a batch at a random location in the bounding box of the upstream
     provider.
 
@@ -105,7 +98,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
 
             logger.info("requesting all %s points...", self.ensure_nonempty)
 
-            points_request = BatchRequest({self.ensure_nonempty: points_spec})
+            points_request = gp.BatchRequest({self.ensure_nonempty: points_spec})
             points_batch = upstream.request_batch(points_request)
 
             self.points = KDTree([
@@ -140,7 +133,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
 
         else:
 
-            lcm_voxel_size = Coordinate((1,)*shift_roi.dims())
+            lcm_voxel_size = gp.Coordinate((1,)*shift_roi.dims())
             lcm_shift_roi = shift_roi
 
         random_shift = self.__select_random_shift(
@@ -339,9 +332,9 @@ class RandomLocationWithIntegralMask(BatchFilter):
                     ii_cp.append(0)
                 else:
                     corner_spec_roi = self.spec[self.mask_integral].copy()
-                    corner_spec_roi.roi = Roi(offset=tuple(cp),
+                    corner_spec_roi.roi = gp.Roi(offset=tuple(cp),
                                               shape=corner_spec_roi.voxel_size)
-                    corner_request = BatchRequest({self.mask_integral: corner_spec_roi})
+                    corner_request = gp.BatchRequest({self.mask_integral: corner_spec_roi})
                     corner = self.get_upstream_provider().request_batch(corner_request)
                     ii_cp.append(corner.arrays[self.mask_integral].data[0, 0, 0])
             S += [sign * ii_cp[r] for r in range(rows)]  # add only good rows
@@ -420,7 +413,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
             logger.debug("select random point at %s", point)
 
             # get the lcm voxel that contains this point
-            lcm_location = Coordinate(point/lcm_voxel_size)
+            lcm_location = gp.Coordinate(point/lcm_voxel_size)
             logger.debug(
                 "belongs to lcm voxel %s",
                 lcm_location)
@@ -434,7 +427,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
 
             # for each of these dimensions, we have to change the shape of the
             # shift ROI using the following correction
-            lower_boundary_correction = Coordinate((
+            lower_boundary_correction = gp.Coordinate((
                 -1 if o else 0
                 for o in on_lower_boundary
             ))
@@ -452,12 +445,12 @@ class RandomLocationWithIntegralMask(BatchFilter):
             # lcm_location
             lcm_shift_roi_begin = (
                 lcm_location - lcm_roi_begin - lcm_roi_shape +
-                Coordinate((1,)*len(lcm_location))
+                gp.Coordinate((1,)*len(lcm_location))
             )
             lcm_shift_roi_shape = (
                 lcm_roi_shape + lower_boundary_correction
             )
-            lcm_point_shift_roi = Roi(lcm_shift_roi_begin, lcm_shift_roi_shape)
+            lcm_point_shift_roi = gp.Roi(lcm_shift_roi_begin, lcm_shift_roi_shape)
             logger.debug("lcm point shift roi: %s", lcm_point_shift_roi)
 
             # intersect with total shift ROI
@@ -493,7 +486,7 @@ class RandomLocationWithIntegralMask(BatchFilter):
     def __select_random_location(self, lcm_shift_roi, lcm_voxel_size):
 
         # select a random point inside ROI
-        random_shift = Coordinate(
+        random_shift = gp.Coordinate(
             randint(int(begin), int(end-1))
             for begin, end in zip(lcm_shift_roi.get_begin(), lcm_shift_roi.get_end()))
 

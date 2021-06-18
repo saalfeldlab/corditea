@@ -1,13 +1,10 @@
-from gunpowder.nodes.batch_filter import BatchFilter
-from gunpowder.coordinate import Coordinate
-from gunpowder.array import ArrayKey
-from gunpowder.array_spec import ArraySpec
+import gunpowder as gp
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class CropArray(BatchFilter):
+class CropArray(gp.BatchFilter):
 
     '''Crop an array
 
@@ -28,7 +25,7 @@ class CropArray(BatchFilter):
 
     def __init__(self, key, cropping_widths_neg, cropping_widths_pos):
 
-        assert isinstance(key, ArrayKey)
+        assert isinstance(key, gp.ArrayKey)
         self.key = key
         self.cropping_widths_neg = cropping_widths_neg
         self.cropping_widths_pos = cropping_widths_pos
@@ -39,8 +36,8 @@ class CropArray(BatchFilter):
                                                       "."%self.key)
 
     def prepare(self, request):
-        cropped_roi = request[self.key].roi.grow(Coordinate(self.cropping_widths_neg),
-                                                 Coordinate(self.cropping_widths_pos))
+        cropped_roi = request[self.key].roi.grow(gp.Coordinate(self.cropping_widths_neg),
+                                                 gp.Coordinate(self.cropping_widths_pos))
 
         request[self.key].roi = cropped_roi
 

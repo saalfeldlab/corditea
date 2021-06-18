@@ -1,11 +1,10 @@
 import logging
 import numpy as np
-
-from gunpowder.nodes.batch_filter import BatchFilter
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
-class IntensityCrop(BatchFilter):
+class IntensityCrop(gp.BatchFilter):
     '''Crop the values of an array to a given range.
 
     Args:

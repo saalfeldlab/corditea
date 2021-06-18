@@ -1,9 +1,9 @@
 import numpy as np
 from collections import Iterable
-from gunpowder import BatchFilter
+import gunpowder as gp
 
 
-class ImpulseNoiseAugment(BatchFilter):
+class ImpulseNoiseAugment(gp.BatchFilter):
     '''Add random valued impulse noise to an intensity array or a list of intensity arrays.
 
     Args:
