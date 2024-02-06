@@ -37,7 +37,7 @@ class LambdaSource(gp.BatchProvider):
             array_specs,):
 
         self.func = func
-        if not isinstance(array_keys, collections.Iterable):
+        if not isinstance(array_keys, collections.abc.Iterable):
             assert isinstance(array_keys, gp.ArrayKey)
             array_keys = (array_keys,)
         self.array_keys = array_keys
