@@ -1,5 +1,7 @@
 from corditea.crop_array import CropArray
 from corditea.gamma_augment import GammaAugment
+from corditea.elastic_augment import ElasticAugment
+from corditea.gaussian_noise_augment import GaussianNoiseAugment
 from corditea.impulse_noise_augment import ImpulseNoiseAugment
 from corditea.intensity_crop import IntensityCrop
 from corditea.lambda_filter import LambdaFilter
