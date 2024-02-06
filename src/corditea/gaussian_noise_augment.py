@@ -2,10 +2,7 @@ import numpy as np
 import skimage
 import random
 
-from gunpowder.batch_request import BatchRequest
-
-from gunpowder.batch_filter import BatchFilter
-
+from gunpowder import BatchFilter, BatchRequest
 
 class GaussianNoiseAugment(BatchFilter):
     """Add random noise to an array. Uses the scikit-image function skimage.util.random_noise.
