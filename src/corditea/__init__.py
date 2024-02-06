@@ -9,5 +9,5 @@ from corditea.lambda_source import LambdaSource
 from corditea.multiply import Multiply
 from corditea.random_location_with_integral_mask import RandomLocationWithIntegralMask
 from corditea.reject_efficiently import RejectEfficiently
-from corditea.tf_run.py import Run
-from corditea.sum.py import Sum
+from corditea.tf_run import Run
+from corditea.sum import Sum
