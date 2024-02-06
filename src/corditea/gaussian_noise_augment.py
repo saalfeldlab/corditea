@@ -39,7 +39,7 @@ class GaussianNoiseAugment(BatchFilter):
         deps = BatchRequest()
         r = random.random()
         if r < self.noise_prob:
-            self.var = random.uniform(var_range[0], var_range[1])
+            self.var = random.uniform(self.var_range[0], self.var_range[1])
         else:
             self.var = 0
         deps[self.array] = request[self.array].copy()
