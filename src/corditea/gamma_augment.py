@@ -5,7 +5,7 @@ from collections.abc import Iterable
 
 import logging
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class GammaAugment(BatchFilter):
@@ -39,6 +39,7 @@ class GammaAugment(BatchFilter):
             gamma = 1.0 / (-gamma + 1)
         else:
             gamma = gamma + 1
+        logger.debug(f"Augmenting with gamma = {gamma}")
         for array in self.arrays:
             raw = batch.arrays[array]
 

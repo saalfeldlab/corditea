@@ -3,14 +3,11 @@ from __future__ import division
 import logging
 import math
 
-import scipy.ndimage
-from scipy.spatial.transform import Rotation as R
-
-import numpy as np
-
 import augment
-
-from gunpowder import BatchFilter, Roi, ArrayKey, Coordinate, GraphKey
+import numpy as np
+import scipy.ndimage
+from gunpowder import ArrayKey, BatchFilter, Coordinate, GraphKey, Roi
+from scipy.spatial.transform import Rotation as R
 
 logger = logging.getLogger(__name__)
 
@@ -195,18 +192,12 @@ class ElasticAugment(BatchFilter):
         self.do_augment = False
 
         logger.debug(
-            "initialized with parameters "
-            "control_point_spacing=%s "
-            "control_point_displacement_sigma=%s "
-            "rotation_start=%f "
-            "rotation_max_amount=%f "
-            "subsample=%f "
-            "seed=%d",
-            self.control_point_spacing,
-            self.control_point_displacement_sigma,
-            self.rotation_start,
-            self.rotation_max_amount,
-            self.subsample,
+            f"initialized with parameters "
+            f"control_point_spacing={self.control_point_spacing} "
+            f"control_point_displacement_sigma= {self.control_point_displacement_sigma}"
+            f"rotation_start={self.rotation_start} "
+            f"rotation_max_amount={self.rotation_max_amount} "
+            f"subsample={self.subsample} "
         )
 
         assert isinstance(self.subsample, int), "subsample has to be integer"
