@@ -1,3 +1,4 @@
+from corditea.concatenate import Concatenate
 from corditea.crop_array import CropArray
 from corditea.gamma_augment import GammaAugment
 from corditea.elastic_augment import ElasticAugment
