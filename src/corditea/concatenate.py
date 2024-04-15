@@ -26,6 +26,7 @@ class Concatenate(gp.BatchFilter):
     def process(self, batch, request):
         data = np.concatenate(tuple(batch.arrays[ak].data for ak in self.arrays), axis = self.concatenation_axis)
         spec = self.spec[self.tgt_array].copy()
+        spec.roi = request[self.tgt_array].roi.copy()
         output = gp.Batch()
         output.arrays[self.tgt_array] = gp.Array(data, spec)
         return output
