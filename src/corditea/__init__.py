@@ -1,3 +1,4 @@
+from corditea.averagedownsample import AverageDownSample
 from corditea.concatenate import Concatenate
 from corditea.crop_array import CropArray
 from corditea.gamma_augment import GammaAugment

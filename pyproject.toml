@@ -26,6 +26,7 @@ dependencies = [
     "gunpowder",
     "numpy",
     "scipy",
+    "scikit-image",
 ]
 
 [project.optional-dependencies]
@@ -66,6 +67,7 @@ type = "conda"
 command = "mamba"
 conda-forge = true
 detached = false
+skip-install=false
 dependencies = ["jupyter", "pytest", "coverage[toml]>=6.5"]
 
 [tool.hatch.envs.lint.scripts]
