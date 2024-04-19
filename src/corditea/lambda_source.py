@@ -93,7 +93,7 @@ class LambdaSource(gp.BatchProvider):
 
         if spec.roi is None:
             roi = gp.Roi(gp.Coordinate((0,) * self.ndims), shape=gp.Coordinate((1,)*self.ndims))
-            roi.set_shape(None)
+            roi.set_shape((None,)*self.ndims)
             spec.roi = roi
 
         arr = self.func((2,) * self.ndims)
