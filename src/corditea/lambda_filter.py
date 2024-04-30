@@ -1,4 +1,5 @@
 import logging
+
 import gunpowder as gp
 
 logger = logging.getLogger(__name__)
@@ -21,13 +22,7 @@ class LambdaFilter(gp.BatchFilter):
             spec of source_key will be used. All members that are None will also be overwritten by spec of source_key.
     '''
 
-    def __init__(
-            self,
-            func,
-            source_key,
-            target_key=None,
-            target_spec=None
-            ):
+    def __init__(self, func, source_key, target_key=None, target_spec=None):
         self.func = func
         self.source_key = source_key
         if target_key is not None:
@@ -38,9 +33,7 @@ class LambdaFilter(gp.BatchFilter):
 
     def setup(self):
         self.enable_autoskip()
-        assert self.source_key in self.spec, (
-            "Upstream does not provide %s needed by "
-            "LambdaFilter" % self.source_key)
+        assert self.source_key in self.spec, "Upstream does not provide %s needed by " "LambdaFilter" % self.source_key
 
         if self.target_spec is not None:
             spec = self.target_spec
@@ -54,7 +47,6 @@ class LambdaFilter(gp.BatchFilter):
                 spec.interpolatable = self.spec[self.source_key].interpolatable
         else:
             spec = self.spec[self.source_key].copy()
-
 
         if self.target_key != self.source_key:
             self.provides(self.target_key, spec)

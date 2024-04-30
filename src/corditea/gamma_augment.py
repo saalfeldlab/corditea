@@ -1,9 +1,8 @@
-import numpy as np
-
-from gunpowder import BatchFilter
+import logging
 from collections.abc import Iterable
 
-import logging
+import numpy as np
+from gunpowder import BatchFilter
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +27,8 @@ class GammaAugment(BatchFilter):
             self.updates(array, self.spec[array])
 
     def process(self, batch, request):
-        sample_gamma_min = (max(self.gamma_min, 1.0 / self.gamma_min) - 1) * (-1) ** (
-            self.gamma_min < 1
-        )
-        sample_gamma_max = (max(self.gamma_max, 1.0 / self.gamma_max) - 1) * (-1) ** (
-            self.gamma_max < 1
-        )
+        sample_gamma_min = (max(self.gamma_min, 1.0 / self.gamma_min) - 1) * (-1) ** (self.gamma_min < 1)
+        sample_gamma_max = (max(self.gamma_max, 1.0 / self.gamma_max) - 1) * (-1) ** (self.gamma_max < 1)
         gamma = np.random.uniform(sample_gamma_min, sample_gamma_max)
         if gamma < 0:
             gamma = 1.0 / (-gamma + 1)
@@ -45,9 +40,7 @@ class GammaAugment(BatchFilter):
 
             assert raw.data.dtype == np.float32 or raw.data.dtype == np.float64, (
                 "Gamma augmentation requires float "
-                "types for the raw array (not "
-                + str(raw.data.dtype)
-                + "). Consider using Normalize before."
+                "types for the raw array (not " + str(raw.data.dtype) + "). Consider using Normalize before."
             )
 
             raw.data = self.__augment(raw.data, gamma)

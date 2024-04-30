@@ -1,9 +1,11 @@
-import numpy as np
-from collections.abc import Iterable
-import gunpowder as gp
 import logging
+from collections.abc import Iterable
+
+import gunpowder as gp
+import numpy as np
 
 logger = logging.getLogger(__name__)
+
 
 class ImpulseNoiseAugment(gp.BatchFilter):
     '''Add random valued impulse noise to an intensity array or a list of intensity arrays.
@@ -26,7 +28,9 @@ class ImpulseNoiseAugment(gp.BatchFilter):
 
     def __init__(self, arrays, p, range=(0, 1)):
         if not isinstance(arrays, Iterable):
-            arrays = [arrays, ]
+            arrays = [
+                arrays,
+            ]
         self.arrays = arrays
         self.p = p
         self.range = range

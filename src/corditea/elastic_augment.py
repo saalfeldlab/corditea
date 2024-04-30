@@ -22,21 +22,15 @@ def _create_identity_transformation(shape, voxel_size=None, offset=None, subsamp
         offset = Coordinate((0,) * dims)
     subsample_shape = tuple(max(1, int(s / subsample)) for s in shape)
     step_width = tuple(
-        float(shape[d] - 1) / (subsample_shape[d] - 1) if subsample_shape[d] > 1 else 1
-        for d in range(dims)
+        float(shape[d] - 1) / (subsample_shape[d] - 1) if subsample_shape[d] > 1 else 1 for d in range(dims)
     )
     step_width = tuple(s * vs for s, vs in zip(step_width, voxel_size))
 
-    axis_ranges = (
-        np.arange(subsample_shape[d], dtype=np.float32) * step_width[d] + offset[d]
-        for d in range(dims)
-    )
+    axis_ranges = (np.arange(subsample_shape[d], dtype=np.float32) * step_width[d] + offset[d] for d in range(dims))
     return np.array(np.meshgrid(*axis_ranges, indexing="ij"), dtype=np.float32)
 
 
-def _upscale_transformation(
-    transformation, output_shape, interpolate_order=1, dtype=np.float32
-):
+def _upscale_transformation(transformation, output_shape, interpolate_order=1, dtype=np.float32):
     input_shape = transformation.shape[1:]
 
     dims = len(output_shape)
@@ -44,13 +38,7 @@ def _upscale_transformation(
 
     scaled = np.empty((dims,) + output_shape, dtype=dtype)
     for d in range(dims):
-        scipy.ndimage.zoom(
-            transformation[d],
-            zoom=scale,
-            output=scaled[d],
-            order=interpolate_order,
-            mode="nearest",
-        )
+        scipy.ndimage.zoom(transformation[d], zoom=scale, output=scaled[d], order=interpolate_order, mode="nearest")
 
     return scaled
 
@@ -72,9 +60,7 @@ def _create_rotation_transformation(shape, angle, subsample=1, voxel_size=None):
         voxel_size = Coordinate((1,) * dims)
 
     # map control points to world coordinates
-    control_point_scaling_factor = tuple(
-        float(s - 1) * vs for s, vs in zip(shape, voxel_size)
-    )
+    control_point_scaling_factor = tuple(float(s - 1) * vs for s, vs in zip(shape, voxel_size))
 
     # rotate control points
     center = np.array([0.5 * (d - 1) * vs for d, vs in zip(shape, voxel_size)])
@@ -86,9 +72,7 @@ def _create_rotation_transformation(shape, angle, subsample=1, voxel_size=None):
     control_point_offsets = np.zeros((dims,) + control_points, dtype=np.float32)
     for control_point in np.ndindex(control_points):
         point = np.array(control_point) * control_point_scaling_factor
-        center_offset = np.array(
-            [p - c for c, p in zip(center, point)], dtype=np.float32
-        )
+        center_offset = np.array([p - c for c, p in zip(center, point)], dtype=np.float32)
         rotated_offset = np.array(center_offset)
         rotated_offset[-2:] = _rotate(center_offset[-2:], angle)
         displacement = rotated_offset - center_offset
@@ -106,9 +90,7 @@ def _create_uniform_3d_transformation(shape, rotation, subsample=1, voxel_size=N
         voxel_size = Coordinate((1,) * dims)
 
     # map control points to world coordinates
-    control_point_scaling_factor = tuple(
-        float(s - 1) * vs for s, vs in zip(shape, voxel_size)
-    )
+    control_point_scaling_factor = tuple(float(s - 1) * vs for s, vs in zip(shape, voxel_size))
 
     # rotate control points
     center = np.array([0.5 * (d - 1) * vs for d, vs in zip(shape, voxel_size)])
@@ -120,9 +102,7 @@ def _create_uniform_3d_transformation(shape, rotation, subsample=1, voxel_size=N
     control_point_offsets = np.zeros((dims,) + control_points, dtype=np.float32)
     for control_point in np.ndindex(control_points):
         point = np.array(control_point) * control_point_scaling_factor
-        center_offset = np.array(
-            [p - c for c, p in zip(center, point)], dtype=np.float32
-        )
+        center_offset = np.array([p - c for c, p in zip(center, point)], dtype=np.float32)
         rotated_offset = np.array(center_offset)
         rotated_offset = rotation.apply(rotated_offset)
         displacement = rotated_offset - center_offset
@@ -208,22 +188,13 @@ class ElasticAugment(BatchFilter):
 
     def setup(self):
         self.voxel_size = Coordinate(
-            min(axis)
-            for axis in zip(
-                *[
-                    array_spec.voxel_size
-                    for array_spec in self.spec.array_specs.values()
-                ]
-            )
+            min(axis) for axis in zip(*[array_spec.voxel_size for array_spec in self.spec.array_specs.values()])
         )
         self.spatial_dims = self.voxel_size.dims
 
     def prepare(self, request):
         logger.debug(
-            "%s preparing request %s with transformation voxel size %s",
-            type(self).__name__,
-            request,
-            self.voxel_size,
+            "%s preparing request %s with transformation voxel size %s", type(self).__name__, request, self.voxel_size
         )
 
         total_roi = request.get_total_roi()
@@ -239,8 +210,7 @@ class ElasticAugment(BatchFilter):
         self.do_augment = uniform_random_sample < self.augmentation_probability
         if not self.do_augment:
             logger.debug(
-                "Prepare: Randomly not augmenting at all. (probabilty to augment: %f)",
-                self.augmentation_probability,
+                "Prepare: Randomly not augmenting at all. (probabilty to augment: %f)", self.augmentation_probability
             )
             return
 
@@ -253,9 +223,7 @@ class ElasticAugment(BatchFilter):
         self.transformations.clear()
         self.target_rois.clear()
 
-        logger.debug(
-            "Master transformation statistics: %s", _min_max_mean_std(master_transform)
-        )
+        logger.debug("Master transformation statistics: %s", _min_max_mean_std(master_transform))
 
         for key, spec in request.items():
             assert isinstance(key, ArrayKey) or isinstance(
@@ -276,9 +244,7 @@ class ElasticAugment(BatchFilter):
             target_roi_voxels = target_roi // voxel_size
 
             # get scale and offset to transform/interpolate master displacement to current spec
-            vs_ratio = np.array(
-                [vs1 / vs2 for vs1, vs2 in zip(voxel_size, self.voxel_size)]
-            )
+            vs_ratio = np.array([vs1 / vs2 for vs1, vs2 in zip(voxel_size, self.voxel_size)])
             offset_world = target_roi.get_begin() - master_roi_snapped.get_begin()
             scale = vs_ratio
             offset = offset_world / self.voxel_size
@@ -287,50 +253,28 @@ class ElasticAugment(BatchFilter):
 
             # need to pass inverse transform, hence -offset
             transform = self._affine(master_transform, scale, offset, target_roi_voxels)
-            logger.debug(
-                "key %s: transformed transform statistics          %s",
-                key,
-                _min_max_mean_std(transform),
-            )
+            logger.debug("key %s: transformed transform statistics          %s", key, _min_max_mean_std(transform))
             source_roi = self._get_source_roi(transform).snap_to_grid(voxel_size)
-            logger.debug(
-                "key %s: source roi (target roi) is %s (%s)",
-                key,
-                source_roi,
-                target_roi,
-            )
+            logger.debug("key %s: source roi (target roi) is %s (%s)", key, source_roi, target_roi)
             self._shift_transformation(-target_roi.get_begin(), transform)
-            logger.debug(
-                "key %s: shifted transformed transform statistics: %s",
-                key,
-                _min_max_mean_std(transform),
-            )
-            for d, (vs, b1, b2) in enumerate(
-                zip(voxel_size, target_roi.get_begin(), source_roi.get_begin())
-            ):
+            logger.debug("key %s: shifted transformed transform statistics: %s", key, _min_max_mean_std(transform))
+            for d, (vs, b1, b2) in enumerate(zip(voxel_size, target_roi.get_begin(), source_roi.get_begin())):
                 pixel_offset = (b1 - b2) / vs
                 transform[d] = transform[d] / vs + pixel_offset
-            logger.debug(
-                "key %s: pixel-space transform statistics:         %s",
-                key,
-                _min_max_mean_std(transform),
-            )
+            logger.debug("key %s: pixel-space transform statistics:         %s", key, _min_max_mean_std(transform))
 
             self.transformations[key] = transform
 
             # update upstream request
             spec.roi = Roi(
-                spec.roi.get_begin()[: -self.spatial_dims]
-                + source_roi.get_begin()[-self.spatial_dims :],
-                spec.roi.get_shape()[: -self.spatial_dims]
-                + source_roi.get_shape()[-self.spatial_dims :],
+                spec.roi.get_begin()[: -self.spatial_dims] + source_roi.get_begin()[-self.spatial_dims :],
+                spec.roi.get_shape()[: -self.spatial_dims] + source_roi.get_shape()[-self.spatial_dims :],
             )
 
     def process(self, batch, request):
         if not self.do_augment:
             logger.debug(
-                "Process: Randomly not augmenting at all. (probabilty to augment: %f)",
-                self.augmentation_probability,
+                "Process: Randomly not augmenting at all. (probabilty to augment: %f)", self.augmentation_probability
             )
             return
 
@@ -347,17 +291,11 @@ class ElasticAugment(BatchFilter):
             # for arrays, the target ROI and the requested ROI should be the
             # same in spatial coordinates
             assert (
-                self.target_rois[key].get_begin()
-                == request[key].roi.get_begin()[-self.spatial_dims :]
+                self.target_rois[key].get_begin() == request[key].roi.get_begin()[-self.spatial_dims :]
             ), "inconsistent offsets {} -- {} for key {}".format(
-                self.target_rois[key].get_begin(),
-                request[key].roi.get_begin()[-self.spatial_dims :],
-                key,
+                self.target_rois[key].get_begin(), request[key].roi.get_begin()[-self.spatial_dims :], key
             )
-            assert (
-                self.target_rois[key].get_shape()
-                == request[key].roi.get_shape()[-self.spatial_dims :]
-            )
+            assert self.target_rois[key].get_shape() == request[key].roi.get_shape()[-self.spatial_dims :]
 
             # reshape array data into (channels,) + spatial dims
             shape = array.data.shape
@@ -373,33 +311,22 @@ class ElasticAugment(BatchFilter):
             data = np.array(
                 [
                     augment.apply_transformation(
-                        data[c],
-                        self.transformations[key],
-                        interpolate=self.spec[key].interpolatable,
+                        data[c], self.transformations[key], interpolate=self.spec[key].interpolatable
                     )
                     for c in range(data.shape[0])
                 ]
             )
 
             data_roi = request[key].roi / self.spec[key].voxel_size
-            array.data = data.reshape(
-                array.data.shape[: -self.spatial_dims] + data_roi.get_shape()
-            )
+            array.data = data.reshape(array.data.shape[: -self.spatial_dims] + data_roi.get_shape())
 
             # restore original ROIs
             array.spec.roi = request[key].roi
 
     def _create_transformation(self, target_shape, offset):
-        logger.debug(
-            "creating displacement for shape %s, subsample %d",
-            target_shape,
-            self.subsample,
-        )
+        logger.debug("creating displacement for shape %s, subsample %d", target_shape, self.subsample)
         transformation = _create_identity_transformation(
-            target_shape,
-            subsample=self.subsample,
-            voxel_size=self.voxel_size,
-            offset=offset,
+            target_shape, subsample=self.subsample, voxel_size=self.voxel_size, offset=offset
         )
         if np.any(np.asarray(self.control_point_displacement_sigma) > 0):
             logger.debug(
@@ -413,48 +340,30 @@ class ElasticAugment(BatchFilter):
                 self.control_point_displacement_sigma,
                 subsample=self.subsample,
             )
-            logger.debug(
-                "elastic displacements statistics: %s", _min_max_mean_std(elastic)
-            )
+            logger.debug("elastic displacements statistics: %s", _min_max_mean_std(elastic))
             transformation += elastic
         if not self.uniform_3d_rotation:
-            rotation = (
-                np.random.random() * self.rotation_max_amount + self.rotation_start
-            )
+            rotation = np.random.random() * self.rotation_max_amount + self.rotation_start
             if rotation != 0:
                 logger.debug("rotating with rotation=%f", rotation)
                 transformation += _create_rotation_transformation(
-                    target_shape,
-                    rotation,
-                    voxel_size=self.voxel_size,
-                    subsample=self.subsample,
+                    target_shape, rotation, voxel_size=self.voxel_size, subsample=self.subsample
                 )
         else:
             rotation = R.random()
             transformation += _create_uniform_3d_transformation(
-                target_shape,
-                rotation,
-                voxel_size=self.voxel_size,
-                subsample=self.subsample,
+                target_shape, rotation, voxel_size=self.voxel_size, subsample=self.subsample
             )
 
         if self.subsample > 1:
-            logger.debug(
-                "transform statistics before upscale: %s",
-                _min_max_mean_std(transformation),
-            )
+            logger.debug("transform statistics before upscale: %s", _min_max_mean_std(transformation))
             transformation = _upscale_transformation(transformation, target_shape)
-            logger.debug(
-                "transform statistics after  upscale: %s",
-                _min_max_mean_std(transformation),
-            )
+            logger.debug("transform statistics after  upscale: %s", _min_max_mean_std(transformation))
 
         return transformation
 
     def _spatial_roi(self, roi):
-        return Roi(
-            roi.get_begin()[-self.spatial_dims :], roi.get_shape()[-self.spatial_dims :]
-        )
+        return Roi(roi.get_begin()[-self.spatial_dims :], roi.get_shape()[-self.spatial_dims :])
 
     def _affine(self, array, scale, offset, target_roi, dtype=np.float32, order=1):
         """taken from the scipy 0.18.1 doc:
@@ -497,12 +406,8 @@ class ElasticAugment(BatchFilter):
         dims = transformation.shape[0]
 
         # get bounding box of needed data for transformation
-        bb_min = Coordinate(
-            int(math.floor(transformation[d].min())) for d in range(dims)
-        )
-        bb_max = Coordinate(
-            int(math.ceil(transformation[d].max())) + 1 for d in range(dims)
-        )
+        bb_min = Coordinate(int(math.floor(transformation[d].min())) for d in range(dims))
+        bb_max = Coordinate(int(math.ceil(transformation[d].max())) + 1 for d in range(dims))
 
         # create roi sufficiently large to feed transformation
         source_roi = Roi(bb_min, bb_max - bb_min)

@@ -1,4 +1,6 @@
 import logging
+
+
 import gunpowder as gp
 import numpy as np
 
@@ -29,7 +31,7 @@ class Concatenate(gp.BatchFilter):
         return deps
 
     def process(self, batch, request):
-        data = np.concatenate(tuple(batch.arrays[ak].data for ak in self.arrays), axis = self.concatenation_axis)
+        data = np.concatenate(tuple(batch.arrays[ak].data for ak in self.arrays), axis=self.concatenation_axis)
         spec = self.spec[self.tgt_array].copy()
         spec.roi = request[self.tgt_array].roi.copy()
         output = gp.Batch()

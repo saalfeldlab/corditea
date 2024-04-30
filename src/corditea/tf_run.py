@@ -1,16 +1,17 @@
 import ctypes
 import logging
 import multiprocessing as mp
-from multiprocessing import process
-import numpy as np
 import os
-
 from functools import reduce
-import gunpowder as gp
-from gunpowder.ext import tensorflow as tf
+from multiprocessing import process
 from operator import mul
 
+import gunpowder as gp
+import numpy as np
+from gunpowder.ext import tensorflow as tf
+
 logger = logging.getLogger(__name__)
+
 
 class Run(gp.nodes.generic_predict.GenericPredict):
     '''Tensorflow implementation of :class:`gunpowder.nodes.Predict`.
@@ -61,18 +62,10 @@ class Run(gp.nodes.generic_predict.GenericPredict):
     '''
 
     def __init__(
-            self,
-            graph,
-            inputs,
-            outputs,
-            array_specs=None,
-            skip_empty=False,
-            max_shared_memory=1024*1024*1024):
+        self, graph, inputs, outputs, array_specs=None, skip_empty=False, max_shared_memory=1024 * 1024 * 1024
+    ):
 
-        super(Run, self).__init__(
-            inputs,
-            outputs,
-            array_specs)
+        super(Run, self).__init__(inputs, outputs, array_specs)
 
         self.meta_graph = graph
         self.session = None
@@ -85,16 +78,11 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         self.shared_input_arrays = {}
         self.shared_output_arrays = {}
         try:
-            self.shared_input_memory = mp.RawArray(
-            ctypes.c_float,
-            self.max_shared_memory)
-            self.shared_output_memory = mp.RawArray(
-                ctypes.c_float,
-                self.max_shared_memory)
+            self.shared_input_memory = mp.RawArray(ctypes.c_float, self.max_shared_memory)
+            self.shared_output_memory = mp.RawArray(ctypes.c_float, self.max_shared_memory)
         except OSError as e:
             print(os.system('df -h'))
             raise e
-
 
         self.send_lock = mp.Lock()
         self.receive_lock = mp.Lock()
@@ -122,7 +110,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
 
             if can_skip:
 
-                logger.info("Skipping batch %i (all inputs are 0)"%batch.id)
+                logger.info("Skipping batch %i (all inputs are 0)" % batch.id)
 
                 for name, array_key in self.outputs.items():
 
@@ -131,9 +119,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
 
                     spec = self.spec[array_key].copy()
                     spec.roi = request[array_key].roi.copy()
-                    batch.arrays[array_key] = gp.Array(
-                        np.zeros(shape, dtype=dtype),
-                        spec)
+                    batch.arrays[array_key] = gp.Array(np.zeros(shape, dtype=dtype), spec)
 
                 return
 
@@ -167,9 +153,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         for array_key in output_tensors:
             spec = self.spec[array_key].copy()
             spec.roi = request[array_key].roi
-            batch.arrays[array_key] = gp.Array(
-                output_data[array_key],
-                spec)
+            batch.arrays[array_key] = gp.Array(output_data[array_key], spec)
 
         logger.debug("predicted in batch %i", batch.id)
 
@@ -181,9 +165,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         logger.info("Initializing tf session, connecting to %s...", target)
 
         self.graph = tf.Graph()
-        self.session = tf.Session(
-            target=target,
-            graph=self.graph)
+        self.session = tf.Session(target=target, graph=self.graph)
 
         with self.graph.as_default():
             self.__read_graph()
@@ -227,14 +209,9 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         # read the graph associated to the checkpoint
         meta_graph_file = self.meta_graph
 
-        logger.info(
-            "Reading graph from %s" ,
-            meta_graph_file)
+        logger.info("Reading graph from %s", meta_graph_file)
 
-        saver = tf.train.import_meta_graph(
-                meta_graph_file,
-                clear_devices=True)
-
+        saver = tf.train.import_meta_graph(meta_graph_file, clear_devices=True)
 
     def __collect_outputs(self, request=None):
         '''Get a dict:
@@ -255,7 +232,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
     def __collect_provided_inputs(self, batch):
         '''Get a dict:
 
-            tensor name: ndarray
+        tensor name: ndarray
         '''
 
         inputs = {}
@@ -265,16 +242,13 @@ class Run(gp.nodes.generic_predict.GenericPredict):
                 if input_key in batch.arrays:
                     inputs[input_name] = batch.arrays[input_key].data
                 else:
-                    logger.warn("batch does not contain %s, input %s will not "
-                                "be set", input_key, input_name)
+                    logger.warn("batch does not contain %s, input %s will not " "be set", input_key, input_name)
             elif isinstance(input_key, np.ndarray):
                 inputs[input_name] = input_key
             elif isinstance(input_key, str):
                 inputs[input_name] = getattr(batch, input_key)
             else:
-                raise Exception(
-                    "Unknown network input key {}, can't be given to "
-                    "network".format(input_key))
+                raise Exception("Unknown network input key {}, can't be given to " "network".format(input_key))
 
         return inputs
 
@@ -289,15 +263,12 @@ class Run(gp.nodes.generic_predict.GenericPredict):
             size = reduce(mul, shape, 1)
             dtype = batch[array_key].data.dtype
 
-            self.shared_input_array_config[name] = (
-                begin,
-                size,
-                shape,
-                dtype)
+            self.shared_input_array_config[name] = (begin, size, shape, dtype)
 
-            begin += size*np.dtype(dtype).itemsize
-        assert begin <= self.max_shared_memory, (
-                "The input arrays {0:} exceed the max_shared_memory {1:}".format(begin, self.max_shared_memory))
+            begin += size * np.dtype(dtype).itemsize
+        assert begin <= self.max_shared_memory, "The input arrays {0:} exceed the max_shared_memory {1:}".format(
+            begin, self.max_shared_memory
+        )
 
     def __create_shared_output_array_config(self):
         '''To be called by predict process.'''
@@ -310,15 +281,10 @@ class Run(gp.nodes.generic_predict.GenericPredict):
             size = reduce(mul, shape, 1)
             dtype = tensor.dtype.as_numpy_dtype
 
-            self.shared_output_array_config[name] = (
-                begin,
-                size,
-                tuple(shape),
-                dtype)
+            self.shared_output_array_config[name] = (begin, size, tuple(shape), dtype)
 
-            begin += size*np.dtype(dtype).itemsize
-            assert begin <= self.max_shared_memory, (
-                "The output arrays exceed the max_shared_memory")
+            begin += size * np.dtype(dtype).itemsize
+            assert begin <= self.max_shared_memory, "The output arrays exceed the max_shared_memory"
 
     def __init_shared_input_arrays(self):
         '''Assign the shared memory to numpy arrays.'''
@@ -326,10 +292,8 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         for name, (begin, size, shape, dtype) in self.shared_input_array_config.items():
 
             self.shared_input_arrays[name] = np.frombuffer(
-                self.shared_input_memory,
-                dtype=dtype,
-                offset=begin,
-                count=size).reshape(shape)
+                self.shared_input_memory, dtype=dtype, offset=begin, count=size
+            ).reshape(shape)
 
     def __init_shared_output_arrays(self):
         '''Assign the shared memory to numpy arrays.'''
@@ -337,10 +301,8 @@ class Run(gp.nodes.generic_predict.GenericPredict):
         for name, (begin, size, shape, dtype) in self.shared_output_array_config.items():
 
             self.shared_output_arrays[name] = np.frombuffer(
-                self.shared_output_memory,
-                dtype=dtype,
-                offset=begin,
-                count=size).reshape(shape)
+                self.shared_output_memory, dtype=dtype, offset=begin, count=size
+            ).reshape(shape)
 
     def __write_inputs_to_shared(self, input_data):
 
@@ -349,10 +311,7 @@ class Run(gp.nodes.generic_predict.GenericPredict):
 
     def __read_inputs_from_shared(self):
 
-        return {
-            tensor_name: self.shared_input_arrays[tensor_name].copy()
-            for tensor_name in self.inputs.keys()
-        }
+        return {tensor_name: self.shared_input_arrays[tensor_name].copy() for tensor_name in self.inputs.keys()}
 
     def __write_outputs_to_shared(self, output_data):
 
@@ -362,6 +321,6 @@ class Run(gp.nodes.generic_predict.GenericPredict):
     def __read_outputs_from_shared(self, output_tensors):
 
         return {
-                array_key: self.shared_output_arrays[tensor_name].copy()
-                for array_key, tensor_name in output_tensors.items()
+            array_key: self.shared_output_arrays[tensor_name].copy()
+            for array_key, tensor_name in output_tensors.items()
         }

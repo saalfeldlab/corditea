@@ -1,6 +1,6 @@
 import logging
-import gunpowder as gp
 
+import gunpowder as gp
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +16,13 @@ class Multiply(gp.BatchFilter):
         roi = self.spec[self.keys[0]].roi
         dtype = self.spec[self.keys[0]].dtype
         for key in self.keys:
-            assert key in self.spec, (
-                "Upstream does not provide %s needed by Multiply" % key
-            )
+            assert key in self.spec, "Upstream does not provide %s needed by Multiply" % key
             assert (
                 self.spec[key].voxel_size == vs
             ), "Inconsistent voxel sizes in Multiply {0:} {1:} and {2:} {3:}".format(
                 self.keys[0], vs, key, self.spec[key].voxel_size
             )
-            assert (
-                self.spec[key].roi == roi
-            ), "Inconsistent ROIs in Multiply {0:} {1:} and {2:} {3:}".format(
+            assert self.spec[key].roi == roi, "Inconsistent ROIs in Multiply {0:} {1:} and {2:} {3:}".format(
                 self.keys[0], vs, key, self.spec[key].voxel_size
             )
             if self.target_spec.dtype is None:

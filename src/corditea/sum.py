@@ -1,7 +1,6 @@
 import logging
-import gunpowder as gp
 
-logger = logging.getLogger(__name__)
+import gunpowder as gp
 
 
 class Sum(gp.BatchFilter):
@@ -18,12 +17,7 @@ class Sum(gp.BatchFilter):
             for missing values the :class:``ArraySpec`` of the first element in `array_keys` will be used
     '''
 
-    def __init__(
-            self,
-            array_keys,
-            sum_array_key,
-            sum_array_spec=None,
-            ):
+    def __init__(self, array_keys, sum_array_key, sum_array_spec=None):
 
         self.array_keys = array_keys
         self.sum_array_key = sum_array_key
@@ -33,11 +27,13 @@ class Sum(gp.BatchFilter):
         vs = self.spec[self.array_keys[0]].voxel_size
         roi = self.spec[self.array_keys[0]].roi
         for ak in self.array_keys:
-            assert ak in self.spec, ("Upstream does not provide %s needed by Sum" % ak)
-            assert self.spec[ak].voxel_size == vs, ("Inconsistent voxel sizes in Sum {0:} {1:} and {2:} {3:}".format(
-            self.array_keys[0], vs, ak, self.spec[ak].voxel_size))
-            assert self.spec[ak].roi == roi, ("Inconsistent ROIs in Sum {0:} {1:} and {2:} {3:}".format(
-            self.array_keys[0], roi, ak, self.spec[ak].roi))
+            assert ak in self.spec, "Upstream does not provide %s needed by Sum" % ak
+            assert self.spec[ak].voxel_size == vs, "Inconsistent voxel sizes in Sum {0:} {1:} and {2:} {3:}".format(
+                self.array_keys[0], vs, ak, self.spec[ak].voxel_size
+            )
+            assert self.spec[ak].roi == roi, "Inconsistent ROIs in Sum {0:} {1:} and {2:} {3:}".format(
+                self.array_keys[0], roi, ak, self.spec[ak].roi
+            )
 
         if self.sum_array_spec is not None:
             spec = self.sum_array_spec
@@ -55,7 +51,7 @@ class Sum(gp.BatchFilter):
 
     def process(self, batch, request):
 
-        if (self.sum_array_key not in request):
+        if self.sum_array_key not in request:
             return
         sum_arr = batch.arrays[self.array_keys[0]].data
         for ak in self.array_keys[1:]:
@@ -63,4 +59,3 @@ class Sum(gp.BatchFilter):
         spec = self.spec[self.sum_array_key].copy()
         spec.roi = request[self.sum_array_key].roi
         batch.arrays[self.sum_array_key] = gp.Array(sum_arr, spec)
-

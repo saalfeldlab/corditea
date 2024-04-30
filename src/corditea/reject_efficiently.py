@@ -1,6 +1,6 @@
+import copy
 import logging
 import random
-import copy
 
 import gunpowder as gp
 
@@ -28,7 +28,7 @@ class RejectEfficiently(gp.BatchFilter):
             rejection.
     '''
 
-    def __init__(self, mask, min_masked=0.5, reject_probability=1.):
+    def __init__(self, mask, min_masked=0.5, reject_probability=1.0):
 
         self.mask = mask
         self.min_masked = min_masked
@@ -36,8 +36,7 @@ class RejectEfficiently(gp.BatchFilter):
 
     def setup(self):
 
-        assert self.mask in self.spec, (
-            "Reject can only be used if %s is provided"%self.mask)
+        assert self.mask in self.spec, "Reject can only be used if %s is provided" % self.mask
         self.upstream_provider = self.get_upstream_provider()
 
     def provide(self, request):
@@ -48,8 +47,7 @@ class RejectEfficiently(gp.BatchFilter):
         timing = gp.profiling.Timing(self)
         timing.start()
 
-        assert self.mask in request, (
-            "Reject can only be used if a GT mask is requested")
+        assert self.mask in request, "Reject can only be used if a GT mask is requested"
 
         have_good_batch = False
         while not have_good_batch:
@@ -62,28 +60,28 @@ class RejectEfficiently(gp.BatchFilter):
             mask_ratio = mask_batch.arrays[self.mask].data.mean()
             have_good_batch = mask_ratio > self.min_masked
 
-            if not have_good_batch and self.reject_probability < 1.:
+            if not have_good_batch and self.reject_probability < 1.0:
                 have_good_batch = random.random() > self.reject_probability
 
             if not have_good_batch:
 
-                logger.debug(
-                    "reject batch with mask ratio %f at %s",
-                    mask_ratio, mask_batch.arrays[self.mask].spec.roi)
+                logger.debug("reject batch with mask ratio %f at %s", mask_ratio, mask_batch.arrays[self.mask].spec.roi)
 
                 num_rejected += 1
 
                 if timing.elapsed() > report_next_timeout:
 
                     logger.warning(
-                        "rejected %d batches, been waiting for a good one "
-                        "since %ds", num_rejected, report_next_timeout)
+                        "rejected %d batches, been waiting for a good one " "since %ds",
+                        num_rejected,
+                        report_next_timeout,
+                    )
                     report_next_timeout *= 2
             else:
 
                 logger.debug(
-                    "accepted batch with mask ratio %f at %s",
-                    mask_ratio, mask_batch.arrays[self.mask].spec.roi)
+                    "accepted batch with mask ratio %f at %s", mask_ratio, mask_batch.arrays[self.mask].spec.roi
+                )
         batch = self.upstream_provider.request_batch(request)
         timing.stop()
         batch.profiling_stats.add(timing)

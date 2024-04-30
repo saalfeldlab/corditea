@@ -1,8 +1,8 @@
 from corditea.averagedownsample import AverageDownSample
 from corditea.concatenate import Concatenate
 from corditea.crop_array import CropArray
-from corditea.gamma_augment import GammaAugment
 from corditea.elastic_augment import ElasticAugment
+from corditea.gamma_augment import GammaAugment
 from corditea.gaussian_noise_augment import GaussianNoiseAugment
 from corditea.impulse_noise_augment import ImpulseNoiseAugment
 from corditea.intensity_crop import IntensityCrop
@@ -11,5 +11,5 @@ from corditea.lambda_source import LambdaSource
 from corditea.multiply import Multiply
 from corditea.random_location_with_integral_mask import RandomLocationWithIntegralMask
 from corditea.reject_efficiently import RejectEfficiently
-from corditea.tf_run import Run
 from corditea.sum import Sum
+from corditea.tf_run import Run

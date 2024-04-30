@@ -1,8 +1,8 @@
-import logging
-import numpy as np
 import collections
+import logging
 
 import gunpowder as gp
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,8 @@ class LambdaSource(gp.BatchProvider):
             A dictionary of array keys to array specs. At least the ``voxel_size``
             needs to be defined.
     '''
-    def __init__(
-            self,
-            func,
-            array_keys,
-            array_specs,):
+
+    def __init__(self, func, array_keys, array_specs):
 
         self.func = func
         if not isinstance(array_keys, collections.abc.Iterable):
@@ -56,7 +53,7 @@ class LambdaSource(gp.BatchProvider):
 
         batch = gp.Batch()
 
-        for (array_key, request_spec) in request.array_specs.items():
+        for array_key, request_spec in request.array_specs.items():
             logger.debug("Reading %s in %s...", array_key, request_spec.roi)
 
             voxel_size = self.spec[array_key].voxel_size
@@ -92,16 +89,20 @@ class LambdaSource(gp.BatchProvider):
         self.ndims = len(spec.voxel_size)
 
         if spec.roi is None:
-            roi = gp.Roi(gp.Coordinate((0,) * self.ndims), shape=gp.Coordinate((1,)*self.ndims))
-            roi.set_shape((None,)*self.ndims)
+            roi = gp.Roi(gp.Coordinate((0,) * self.ndims), shape=gp.Coordinate((1,) * self.ndims))
+            roi.set_shape((None,) * self.ndims)
             spec.roi = roi
 
         arr = self.func((2,) * self.ndims)
         if spec.dtype is not None:
-            assert spec.dtype == arr.dtype, ("dtype %s provided in array_specs for %s, "
-                                                 "but differs from function output %s dtype %s" %
-                                                 (self.array_specs[array_key].dtype,
-                                                  array_key, self.func, arr.dtype))
+            assert (
+                spec.dtype == arr.dtype
+            ), "dtype %s provided in array_specs for %s, " "but differs from function output %s dtype %s" % (
+                self.array_specs[array_key].dtype,
+                array_key,
+                self.func,
+                arr.dtype,
+            )
         else:
             spec.dtype = arr.dtype
 
@@ -111,13 +112,17 @@ class LambdaSource(gp.BatchProvider):
                 np.float32,
                 np.float64,
                 np.float128,
-                np.uint8  # assuming this is not used for labels
+                np.uint8,  # assuming this is not used for labels
             ]
-            logger.warning("WARNING: You didn't set 'interpolatable' for %s "
-                           "(func %s) . Based on the dtype %s, it has been "
-                           "set to %s. This might not be what you want.",
-                           array_key, self.func, spec.dtype,
-                           spec.interpolatable)
+            logger.warning(
+                "WARNING: You didn't set 'interpolatable' for %s "
+                "(func %s) . Based on the dtype %s, it has been "
+                "set to %s. This might not be what you want.",
+                array_key,
+                self.func,
+                spec.dtype,
+                spec.interpolatable,
+            )
 
         return spec
 

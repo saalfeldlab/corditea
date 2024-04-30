@@ -24,7 +24,7 @@ class AverageDownSample(gp.BatchFilter):
             The key of the array to store the downsampled ``source``.
     """
 
-    def __init__(self, source, target_voxel_size, target = None):
+    def __init__(self, source, target_voxel_size, target=None):
         assert isinstance(source, gp.ArrayKey)
         self.source = source
         self.target_voxel_size = gp.Coordinate(target_voxel_size)
@@ -42,14 +42,16 @@ class AverageDownSample(gp.BatchFilter):
         spec = self.spec[self.source].copy()
         spec.voxel_size = self.target_voxel_size
         source_roi = spec.roi
-        spec.roi = (spec.roi/self.target_voxel_size) * self.target_voxel_size
+        spec.roi = (spec.roi / self.target_voxel_size) * self.target_voxel_size
         logger.debug(f"Updating {source_roi} to {spec.roi}")
-        assert self.target_voxel_size % self.source_voxel_size == gp.Coordinate((0,) * len(self.target_voxel_size)), f"{self.target_voxel_size % self.source_voxel_size}"
+        assert self.target_voxel_size % self.source_voxel_size == gp.Coordinate(
+            (0,) * len(self.target_voxel_size)
+        ), f"{self.target_voxel_size % self.source_voxel_size}"
         assert self.target_voxel_size > self.source_voxel_size
         if not spec.interpolatable:
             msg = "can't use average downsampling for non-interpolatable arrays"
             raise ValueError(msg)
-    
+
         if self.target == self.source:
             self.updates(self.target, spec)
         else:
@@ -61,7 +63,7 @@ class AverageDownSample(gp.BatchFilter):
         source_request = request[self.target].copy()
         # correct the voxel size for source
         logger.debug(f"Initializing source request with {source_request}")
-        #source_voxel_size = self.spec[self.source].voxel_size
+        # source_voxel_size = self.spec[self.source].voxel_size
         source_request.voxel_size = self.source_voxel_size
         deps = gp.BatchRequest()
         deps[self.source] = source_request
@@ -79,7 +81,7 @@ class AverageDownSample(gp.BatchFilter):
         target_spec = source.spec.copy()
         target_spec.roi = gp.Roi(
             source.spec.roi.get_begin(),
-            self.target_voxel_size * gp.Coordinate(resampled_data.shape[-self.target_voxel_size.dims:])
+            self.target_voxel_size * gp.Coordinate(resampled_data.shape[-self.target_voxel_size.dims :]),
         )
         target_spec.voxel_size = self.target_voxel_size
         logger.debug(f"returning array with spec {target_spec}")
