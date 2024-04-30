@@ -37,25 +37,29 @@ class LambdaFilter(gp.BatchFilter):
         self.target_spec = target_spec
 
     def setup(self):
-
+        self.enable_autoskip()
         assert self.source_key in self.spec, (
             "Upstream does not provide %s needed by "
             "LambdaFilter" % self.source_key)
 
+        if self.target_spec is not None:
+            spec = self.target_spec
+            if spec.voxel_size is None:
+                spec.voxel_size = self.spec[self.source_key].voxel_size
+            if spec.roi is None:
+                spec.roi = self.spec[self.source_key].roi
+            if spec.dtype is None:
+                spec.dtype = self.spec[self.source_key].dtype
+            if spec.interpolatable is None:
+                spec.interpolatable = self.spec[self.source_key].interpolatable
+        else:
+            spec = self.spec[self.source_key].copy()
+
+
         if self.target_key != self.source_key:
-            if self.target_spec is not None:
-                spec = self.target_spec
-                if spec.voxel_size is None:
-                    spec.voxel_size = self.spec[self.source_key].voxel_size
-                if spec.roi is None:
-                    spec.roi = self.spec[self.source_key].roi
-                if spec.dtype is None:
-                    spec.dtype = self.spec[self.source_key].dtype
-                if spec.interpolatable is None:
-                    spec.interpolatable = self.spec[self.source_key].interpolatable
-            else:
-                spec = self.spec[self.source_key].copy()
             self.provides(self.target_key, spec)
+        else:
+            self.updates(self.source_key, spec)
 
     def process(self, batch, request):
 
