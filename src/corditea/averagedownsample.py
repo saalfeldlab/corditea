@@ -41,6 +41,9 @@ class AverageDownSample(gp.BatchFilter):
 
         spec = self.spec[self.source].copy()
         spec.voxel_size = self.target_voxel_size
+        source_roi = spec.roi
+        spec.roi = (spec.roi/self.target_voxel_size) * self.target_voxel_size
+        logger.debug(f"Updating {source_roi} to {spec.roi}")
         assert self.target_voxel_size % self.source_voxel_size == gp.Coordinate((0,) * len(self.target_voxel_size)), f"{self.target_voxel_size % self.source_voxel_size}"
         assert self.target_voxel_size > self.source_voxel_size
         if not spec.interpolatable:
