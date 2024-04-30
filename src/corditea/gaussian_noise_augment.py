@@ -1,8 +1,10 @@
 import numpy as np
 import skimage
 import random
-
+import logging
 from gunpowder import BatchFilter, BatchRequest
+
+logger = logging.getLogger(__name__)
 
 class GaussianNoiseAugment(BatchFilter):
     """Add random noise to an array. Uses the scikit-image function skimage.util.random_noise.

@@ -1,11 +1,16 @@
+import logging
 import gunpowder as gp
 import numpy as np
+
+logger = logging.getLogger(__name__)
+
 
 class Concatenate(gp.BatchFilter):
     def __init__(self, arrays, tgt_array, concatenation_axis=0):
         self.arrays = arrays
         self.tgt_array = tgt_array
         self.concatenation_axis = concatenation_axis
+
     def setup(self):
         spec = None
         for ak in self.arrays:
