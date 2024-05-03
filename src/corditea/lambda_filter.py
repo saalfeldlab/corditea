@@ -60,6 +60,6 @@ class LambdaFilter(gp.BatchFilter):
         arr = batch.arrays[self.source_key].data
         func_output = self.func(arr)
 
-        spec = self.spec[self.target_key].copy()
-        spec.roi = request[self.target_key].roi
+        spec = self.spec[self.source_key].copy()
+        spec.roi = request[self.source_key].roi
         batch.arrays[self.target_key] = gp.Array(func_output, spec)
