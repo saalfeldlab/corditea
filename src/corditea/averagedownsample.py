@@ -49,7 +49,9 @@ class AverageDownSample(gp.BatchFilter):
         assert self.target_voxel_size % self.source_voxel_size == gp.Coordinate(
             (0,) * len(self.target_voxel_size)
         ), f"{self.target_voxel_size % self.source_voxel_size}"
-        assert self.target_voxel_size > self.source_voxel_size
+        assert (
+            self.target_voxel_size > self.source_voxel_size
+        ), f"{self.target_voxel_size=} {self.source_voxel_size=}"
         if not spec.interpolatable:
             msg = "can't use average downsampling for non-interpolatable arrays"
             raise ValueError(msg)
