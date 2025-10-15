@@ -166,3 +166,7 @@ cython_debug/
 .pixi/
 .pixi-container/
 pixi.lock
+
+# Claude
+.claude/
+CLAUDE.md
