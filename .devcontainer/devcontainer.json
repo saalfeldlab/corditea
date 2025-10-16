@@ -49,8 +49,8 @@
   },
   "remoteUser": "node",
   "mounts": [
-    "source=claude-code-bashhistory,target=/commandhistory,type=volume",
-    "source=claude-code-config,target=/home/node/.claude,type=volume",
+    "source=${localWorkspaceFolderBasename}_claude-code-bashhistory,target=/commandhistory,type=volume",
+    "source=${localWorkspaceFolderBasename}_claude-code-config,target=/home/node/.claude,type=volume",
     "source=/nrs/saalfeld/heinrichl/organelle-mapping,target=/experiments,type=bind",
     "source=/nrs/saalfeld/heinrichl/data/cellmap_labels/challenge,target=/data,readonly,type=bind"
   ],
