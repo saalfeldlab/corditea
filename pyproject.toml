@@ -161,6 +161,7 @@ python = "3.11.*"
 
 [tool.pixi.pypi-dependencies]
 corditea = { path = ".", editable = true }
+zarr = "<3.0.0"
 
 
 
