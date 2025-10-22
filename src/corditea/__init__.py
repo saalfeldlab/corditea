@@ -1,4 +1,5 @@
 from corditea.averagedownsample import AverageDownSample
+from corditea.binary_to_instances import BinaryToInstances
 from corditea.concatenate import Concatenate
 from corditea.crop_array import CropArray
 from corditea.elastic_augment import ElasticAugment
