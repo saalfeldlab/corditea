@@ -154,7 +154,7 @@ test-cov = "coverage run -m pytest tests"
 cov-report = { cmd = ["coverage combine", "coverage report"], depends-on = ["test-cov"] }
 lint = "ruff check ."
 format = "ruff format ."
-typecheck = "mypy --install-types --non-interactive src/organelle_mapping tests"
+typecheck = "mypy --install-types --non-interactive src/corditea tests"
 
 [tool.pixi.dependencies]
 python = "3.11.*"
