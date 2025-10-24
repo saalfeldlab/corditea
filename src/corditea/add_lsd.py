@@ -153,7 +153,16 @@ class AddLSD(BatchFilter):
         labels = list(np.unique(segmentation_array.data))
         if self.background_mode == "exclude" or self.background_mode == "zero":
             labels = [l for l in labels if l not in self.background_value]
-
+        elif self.background_mode == "label":
+            # Relabel all background values to a single label
+            unified_bg_label = self.background_value[0]
+            # Ensure unified label is in the labels list
+            if unified_bg_label not in labels:
+                labels.append(unified_bg_label)
+            for bg_val in self.background_value[1:]:
+                if bg_val in labels:
+                    segmentation_array.data[segmentation_array.data == bg_val] = unified_bg_label
+                    labels.remove(bg_val)
         if 0 in labels:
             new_label = max(labels) + 1
             segmentation_array.data[segmentation_array.data == 0] = new_label
