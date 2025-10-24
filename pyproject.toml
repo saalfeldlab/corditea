@@ -20,7 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["gunpowder", "numpy", "scipy", "scikit-image"]
+dependencies = ["gunpowder", "lsd-lite", "numpy", "scipy", "scikit-image"]
 
 [project.optional-dependencies]
 
