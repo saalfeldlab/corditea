@@ -15,3 +15,4 @@ from corditea.random_location_with_integral_mask import RandomLocationWithIntegr
 from corditea.reject_efficiently import RejectEfficiently
 from corditea.sum import Sum
 from corditea.tf_run import Run
+from corditea.threshold import Threshold
