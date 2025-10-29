@@ -677,3 +677,44 @@ def test_singleton_channel_dimension(array_keys, simple_2d_segmentation):
     # LSDs should have shape (num_descriptors, height, width)
     assert len(descriptor.shape) == 3
     assert descriptor.shape[1:] == simple_2d_segmentation.shape
+
+
+def test_singleton_channel_dimension_with_mask(array_keys, simple_2d_segmentation):
+    """Test that AddLSD handles singleton channel dimensions correctly with lsds_mask."""
+    seg_key = array_keys["segmentation"]
+    desc_key = array_keys["descriptor"]
+    lsds_mask_key = array_keys["lsds_mask"]
+
+    # Add singleton channel dimension to segmentation (shape becomes (1, H, W))
+    seg_with_channel = simple_2d_segmentation[np.newaxis, ...]
+
+    voxel_size = gp.Coordinate((1, 1))  # Still 2D voxel size
+    input_size = gp.Coordinate(simple_2d_segmentation.shape) * voxel_size
+
+    source = gp.ArraySource(seg_key, PersistenceArray(seg_with_channel, voxel_size=voxel_size))
+
+    lsd_node = AddLSD(segmentation=seg_key, descriptor=desc_key, lsds_mask=lsds_mask_key, sigma=0.5)
+
+    context_coord = gp.Coordinate((10, 10))
+    pipeline = source + gp.Pad(seg_key, context_coord) + lsd_node
+
+    request = gp.BatchRequest()
+    request[desc_key] = gp.ArraySpec(roi=gp.Roi((0, 0), input_size))
+    request[lsds_mask_key] = gp.ArraySpec(roi=gp.Roi((0, 0), input_size))
+
+    # This should not crash with dimension mismatch on mask
+    with gp.build(pipeline):
+        batch = pipeline.request_batch(request)
+
+    assert desc_key in batch.arrays
+    assert lsds_mask_key in batch.arrays
+
+    descriptor = batch.arrays[desc_key].data
+    mask = batch.arrays[lsds_mask_key].data
+
+    # LSDs should have shape (num_descriptors, height, width)
+    assert len(descriptor.shape) == 3
+    assert descriptor.shape[1:] == simple_2d_segmentation.shape
+
+    # Mask should have same shape as descriptor
+    assert mask.shape == descriptor.shape
