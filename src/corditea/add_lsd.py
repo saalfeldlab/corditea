@@ -7,7 +7,19 @@ from typing import Literal, Union
 
 logger = logging.getLogger(__name__)
 
-
+def remove_leading_singleton_dims(arr: np.ndarray) -> np.ndarray:
+    """Remove leading singleton dimensions from an array."""
+    leading_singletons = 0
+    for i in range(arr.ndim):
+        if arr.shape[i] == 1:
+            leading_singletons += 1
+        else:
+            break
+    if leading_singletons > 0:
+        arr = np.squeeze(arr, axis=tuple(range(leading_singletons)))
+        logger.debug(f"Squeezed array from {arr.shape} to {arr.shape}")
+    return arr
+    
 class AddLSD(BatchFilter):
     """Create a local segmentation shape descriptor to each voxel.
 
@@ -130,7 +142,7 @@ class AddLSD(BatchFilter):
 
     def process(self, batch, request):
         dims = len(self.voxel_size)
-
+        
         segmentation_array = batch[self.segmentation]
 
         # get voxel roi of requested descriptors
@@ -139,8 +151,16 @@ class AddLSD(BatchFilter):
         seg_roi = segmentation_array.spec.roi
         descriptor_roi = request[self.descriptor].roi
         voxel_roi_in_seg = (seg_roi.intersect(descriptor_roi) - seg_roi.get_offset()) / self.voxel_size
+        
+        # Prepare segmentation data for get_lsds
+        # Remove singleton dimensions to match voxel_size dimensions
+        seg_data = segmentation_array.data
 
-        labels = list(np.unique(segmentation_array.data))
+        # If segmentation has more dimensions than voxel_size, squeeze singleton dims
+        if seg_data.ndim > dims:
+            seg_data = remove_leading_singleton_dims(seg_data)
+            
+        labels = list(np.unique(seg_data))
         if self.background_mode == "exclude" or self.background_mode == "zero":
             labels = [l for l in labels if l not in self.background_value]
         elif self.background_mode == "label":
@@ -151,33 +171,14 @@ class AddLSD(BatchFilter):
                 labels.append(unified_bg_label)
             for bg_val in self.background_value[1:]:
                 if bg_val in labels:
-                    segmentation_array.data[segmentation_array.data == bg_val] = unified_bg_label
+                    seg_data[seg_data == bg_val] = unified_bg_label
                     labels.remove(bg_val)
         if 0 in labels:
             new_label = max(labels) + 1
-            segmentation_array.data[segmentation_array.data == 0] = new_label
+            seg_data[seg_data == 0] = new_label
             labels.remove(0)
             labels.append(new_label)
 
-        # Prepare segmentation data for get_lsds
-        # Remove singleton dimensions to match voxel_size dimensions
-        seg_data = segmentation_array.data
-
-        # If segmentation has more dimensions than voxel_size, squeeze singleton dims
-        if seg_data.ndim > dims:
-            # Find singleton dimensions at the beginning
-            leading_singletons = 0
-            for i in range(seg_data.ndim - dims):
-                if seg_data.shape[i] == 1:
-                    leading_singletons += 1
-                else:
-                    break
-
-            if leading_singletons > 0:
-                # Squeeze leading singleton dimensions
-                squeeze_axes = tuple(range(leading_singletons))
-                seg_data = np.squeeze(seg_data, axis=squeeze_axes)
-                logger.debug(f"Squeezed segmentation from {segmentation_array.data.shape} to {seg_data.shape}")
 
         descriptor = get_lsds(
             segmentation=seg_data,
@@ -201,14 +202,17 @@ class AddLSD(BatchFilter):
 
         # create lsds mask array
         if self.lsds_mask and self.lsds_mask in request:
-            if self.labels_mask:
-                mask = self._create_mask(batch, self.labels_mask, descriptor, voxel_roi_in_seg.to_slices())
+            # Use the spatial slices that match the squeezed segmentation dimensions
+            spatial_crop = voxel_roi_in_seg.to_slices()
 
+            if self.labels_mask:
+                mask = self._create_mask(batch, self.labels_mask, descriptor, spatial_crop)
             else:
                 mask = np.ones_like(descriptor, dtype=np.float32)
+
             if self.background_mode == "exclude":
                 # Use the squeezed segmentation data for mask computation
-                seg_crop = seg_data[voxel_roi_in_seg.to_slices()]
+                seg_crop = seg_data[spatial_crop]
                 for bv in self.background_value:
                     # Create spatial mask and broadcast across all channels
                     spatial_mask = seg_crop == bv
@@ -225,6 +229,8 @@ class AddLSD(BatchFilter):
 
     def _create_mask(self, batch, mask, lsds, crop):
         mask = batch.arrays[mask].data
+        
+        mask = remove_leading_singleton_dims(mask)
 
         mask = np.array([mask] * lsds.shape[0])
 
