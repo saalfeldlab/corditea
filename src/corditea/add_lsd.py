@@ -214,7 +214,10 @@ class AddLSD(BatchFilter):
                     spatial_mask = seg_crop == bv
                     # Multiply mask by inverted spatial mask (broadcast automatically)
                     mask = mask * (~spatial_mask)[None, ...]
-            output[self.lsds_mask] = Array(mask.astype(descriptor.dtype), descriptor_spec.copy())
+            # Create mask spec with correct ROI for the mask
+            mask_spec = self.spec[self.lsds_mask].copy()
+            mask_spec.roi = request[self.lsds_mask].roi.copy()
+            output[self.lsds_mask] = Array(mask.astype(descriptor.dtype), mask_spec)
 
         output[self.descriptor] = descriptor_array
 

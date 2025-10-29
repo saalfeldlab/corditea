@@ -371,7 +371,6 @@ def test_roi_cropping(array_keys, simple_2d_segmentation):
     desc_key = array_keys["descriptor"]
 
     voxel_size = gp.Coordinate((1, 1))
-    input_size = gp.Coordinate(simple_2d_segmentation.shape) * voxel_size
 
     source = gp.ArraySource(seg_key, PersistenceArray(simple_2d_segmentation, voxel_size=voxel_size))
 
