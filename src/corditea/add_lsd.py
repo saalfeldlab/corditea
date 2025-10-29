@@ -140,7 +140,6 @@ class AddLSD(BatchFilter):
         descriptor_roi = request[self.descriptor].roi
         voxel_roi_in_seg = (seg_roi.intersect(descriptor_roi) - seg_roi.get_offset()) / self.voxel_size
 
-        crop = voxel_roi_in_seg.get_bounding_box()
         labels = list(np.unique(segmentation_array.data))
         if self.background_mode == "exclude" or self.background_mode == "zero":
             labels = [l for l in labels if l not in self.background_value]
@@ -203,12 +202,13 @@ class AddLSD(BatchFilter):
         # create lsds mask array
         if self.lsds_mask and self.lsds_mask in request:
             if self.labels_mask:
-                mask = self._create_mask(batch, self.labels_mask, descriptor, crop)
+                mask = self._create_mask(batch, self.labels_mask, descriptor, voxel_roi_in_seg.to_slices())
 
             else:
                 mask = np.ones_like(descriptor, dtype=np.float32)
             if self.background_mode == "exclude":
-                seg_crop = segmentation_array.data[voxel_roi_in_seg.to_slices()]
+                # Use the squeezed segmentation data for mask computation
+                seg_crop = seg_data[voxel_roi_in_seg.to_slices()]
                 for bv in self.background_value:
                     # Create spatial mask and broadcast across all channels
                     spatial_mask = seg_crop == bv
