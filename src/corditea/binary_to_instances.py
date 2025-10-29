@@ -166,6 +166,7 @@ class BinaryToInstances(gp.BatchFilter):
         # Create output array with same spec as source
         target_spec = source_array.spec.copy()
         target_spec.interpolatable = False
+        target_spec.dtype = output_data.dtype
 
         # Create the output batch
         output_batch = gp.Batch()
