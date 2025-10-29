@@ -226,9 +226,9 @@ class ElasticAugment(BatchFilter):
         logger.debug("Master transformation statistics: %s", _min_max_mean_std(master_transform))
 
         for key, spec in request.items():
-            assert isinstance(key, ArrayKey) or isinstance(
-                key, GraphKey
-            ), "Only ArrayKey/GraphKey supported but got %s in request" % type(key)
+            assert isinstance(key, ArrayKey) or isinstance(key, GraphKey), (
+                "Only ArrayKey/GraphKey supported but got %s in request" % type(key)
+            )
 
             logger.debug("key %s: preparing with spec %s", key, spec)
 
@@ -290,10 +290,10 @@ class ElasticAugment(BatchFilter):
 
             # for arrays, the target ROI and the requested ROI should be the
             # same in spatial coordinates
-            assert (
-                self.target_rois[key].get_begin() == request[key].roi.get_begin()[-self.spatial_dims :]
-            ), "inconsistent offsets {} -- {} for key {}".format(
-                self.target_rois[key].get_begin(), request[key].roi.get_begin()[-self.spatial_dims :], key
+            assert self.target_rois[key].get_begin() == request[key].roi.get_begin()[-self.spatial_dims :], (
+                "inconsistent offsets {} -- {} for key {}".format(
+                    self.target_rois[key].get_begin(), request[key].roi.get_begin()[-self.spatial_dims :], key
+                )
             )
             assert self.target_rois[key].get_shape() == request[key].roi.get_shape()[-self.spatial_dims :]
 

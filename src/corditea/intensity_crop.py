@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class IntensityCrop(gp.BatchFilter):
-    '''Crop the values of an array to a given range.
+    """Crop the values of an array to a given range.
 
     Args:
 
@@ -25,16 +25,14 @@ class IntensityCrop(gp.BatchFilter):
             Maximum value. If None, clipping is not performed on upper interval edge. Not more than one of ``lower``
             and ``upper`` may be None.
 
-    '''
+    """
 
     def __init__(self, array, lower, upper):
-
         self.array = array
         self.lower = lower
         self.upper = upper
 
     def process(self, batch, request):
-
         if self.array not in batch.arrays:
             return
 

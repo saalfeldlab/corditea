@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class LambdaFilter(gp.BatchFilter):
-    '''Apply an aribitrary function to the data in an array.
+    """Apply an aribitrary function to the data in an array.
 
     Args:
 
@@ -20,7 +20,7 @@ class LambdaFilter(gp.BatchFilter):
 
         target_spec(:class: ``ArraySpec``, optional): The :class:``ArraySpec`` for the target key. If not given the
             spec of source_key will be used. All members that are None will also be overwritten by spec of source_key.
-    '''
+    """
 
     def __init__(self, func, source_key, target_key=None, target_spec=None):
         self.func = func
@@ -33,7 +33,7 @@ class LambdaFilter(gp.BatchFilter):
 
     def setup(self):
         self.enable_autoskip()
-        assert self.source_key in self.spec, "Upstream does not provide %s needed by " "LambdaFilter" % self.source_key
+        assert self.source_key in self.spec, "Upstream does not provide %s needed by LambdaFilter" % self.source_key
 
         if self.target_spec is not None:
             spec = self.target_spec
@@ -54,7 +54,6 @@ class LambdaFilter(gp.BatchFilter):
             self.updates(self.source_key, spec)
 
     def process(self, batch, request):
-
         if self.target_key not in request:
             return
         arr = batch.arrays[self.source_key].data

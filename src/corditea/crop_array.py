@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class CropArray(gp.BatchFilter):
-    '''Crop an array
+    """Crop an array
 
     Args:
 
@@ -21,10 +21,9 @@ class CropArray(gp.BatchFilter):
         cropping_widths_pos (``int`` or ``tuple`` of ``int``):
 
             The amount to cut away at the end.
-    '''
+    """
 
     def __init__(self, key, cropping_widths_neg, cropping_widths_pos):
-
         assert isinstance(key, gp.ArrayKey)
         self.key = key
         self.cropping_widths_neg = cropping_widths_neg
@@ -33,7 +32,7 @@ class CropArray(gp.BatchFilter):
     def setup(self):
         assert self.key in self.spec, "Asked to crop %s, but is not provided upstream." % self.key
         assert self.spec[self.key].roi is not None, (
-            "Asked to crop %s, but upstream provider doesn't have a ROI for it" "." % self.key
+            "Asked to crop %s, but upstream provider doesn't have a ROI for it." % self.key
         )
 
     def prepare(self, request):

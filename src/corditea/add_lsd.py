@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class AddLSD(BatchFilter):
-
     """Create a local segmentation shape descriptor to each voxel.
 
     Args:
@@ -55,13 +54,11 @@ class AddLSD(BatchFilter):
         sigma=5.0,
         downsample=1,
     ):
-
         self.segmentation = segmentation
         self.descriptor = descriptor
         self.lsds_mask = lsds_mask
         self.labels_mask = labels_mask
         self.sigma = sigma
-
 
         self.downsample = downsample
         self.voxel_size = None
@@ -70,9 +67,7 @@ class AddLSD(BatchFilter):
             background_value = (background_value,)
         self.background_value = background_value
 
-
     def setup(self):
-
         spec = self.spec[self.segmentation].copy()
         spec.dtype = np.float32
 
@@ -84,7 +79,7 @@ class AddLSD(BatchFilter):
 
         # Context will be computed in prepare() based on actual dimensions
         self.enable_autoskip()
-        
+
     def prepare(self, request):
         deps = BatchRequest()
 
@@ -97,7 +92,7 @@ class AddLSD(BatchFilter):
             sigma = self.sigma
             if len(sigma) != dims:
                 raise ValueError(f"Sigma tuple length ({len(sigma)}) must match spatial dimensions ({dims})")
-        context = tuple(s*3 for s in sigma)
+        context = tuple(s * 3 for s in sigma)
         # increase segmentation ROI to fit Gaussian
         context_roi = request[self.descriptor].roi.grow(context, context)
 
@@ -134,8 +129,6 @@ class AddLSD(BatchFilter):
         return deps
 
     def process(self, batch, request):
-
-
         dims = len(self.voxel_size)
 
         segmentation_array = batch[self.segmentation]
@@ -145,9 +138,7 @@ class AddLSD(BatchFilter):
         # which we have to compute the descriptors
         seg_roi = segmentation_array.spec.roi
         descriptor_roi = request[self.descriptor].roi
-        voxel_roi_in_seg = (
-            seg_roi.intersect(descriptor_roi) - seg_roi.get_offset()
-        ) / self.voxel_size
+        voxel_roi_in_seg = (seg_roi.intersect(descriptor_roi) - seg_roi.get_offset()) / self.voxel_size
 
         crop = voxel_roi_in_seg.get_bounding_box()
         labels = list(np.unique(segmentation_array.data))
@@ -194,7 +185,7 @@ class AddLSD(BatchFilter):
             sigma=self.sigma,
             voxel_size=self.voxel_size,
             downsample=self.downsample,
-            labels=labels
+            labels=labels,
         )
 
         # get_lsds returns (channels, spatial...) format, so we need to slice only spatial dimensions
@@ -211,9 +202,7 @@ class AddLSD(BatchFilter):
 
         # create lsds mask array
         if self.lsds_mask and self.lsds_mask in request:
-
             if self.labels_mask:
-
                 mask = self._create_mask(batch, self.labels_mask, descriptor, crop)
 
             else:
@@ -225,16 +214,13 @@ class AddLSD(BatchFilter):
                     spatial_mask = seg_crop == bv
                     # Multiply mask by inverted spatial mask (broadcast automatically)
                     mask = mask * (~spatial_mask)[None, ...]
-            output[self.lsds_mask] = Array(
-                mask.astype(descriptor.dtype), descriptor_spec.copy()
-            )
+            output[self.lsds_mask] = Array(mask.astype(descriptor.dtype), descriptor_spec.copy())
 
         output[self.descriptor] = descriptor_array
 
         return output
 
     def _create_mask(self, batch, mask, lsds, crop):
-
         mask = batch.arrays[mask].data
 
         mask = np.array([mask] * lsds.shape[0])

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImpulseNoiseAugment(gp.BatchFilter):
-    '''Add random valued impulse noise to an intensity array or a list of intensity arrays.
+    """Add random valued impulse noise to an intensity array or a list of intensity arrays.
 
     Args:
 
@@ -24,7 +24,7 @@ class ImpulseNoiseAugment(gp.BatchFilter):
 
             Range for random values of noise, drawn from a uniform distribution. For fixed valued impulse noise set
             start and end of this range to the same value.
-    '''
+    """
 
     def __init__(self, arrays, p, range=(0, 1)):
         if not isinstance(arrays, Iterable):
@@ -36,7 +36,6 @@ class ImpulseNoiseAugment(gp.BatchFilter):
         self.range = range
 
     def process(self, batch, request):
-
         assert all([batch.arrays[array].data.shape == batch.arrays[self.arrays[0]].data.shape for array in self.arrays])
 
         noise_locations = (np.random.binomial(1, self.p, batch.arrays[self.arrays[0]].data.shape)).astype(bool)

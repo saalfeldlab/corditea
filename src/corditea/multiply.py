@@ -17,19 +17,19 @@ class Multiply(gp.BatchFilter):
         dtype = self.spec[self.keys[0]].dtype
         for key in self.keys:
             assert key in self.spec, "Upstream does not provide %s needed by Multiply" % key
-            assert (
-                self.spec[key].voxel_size == vs
-            ), "Inconsistent voxel sizes in Multiply {0:} {1:} and {2:} {3:}".format(
-                self.keys[0], vs, key, self.spec[key].voxel_size
+            assert self.spec[key].voxel_size == vs, (
+                "Inconsistent voxel sizes in Multiply {0:} {1:} and {2:} {3:}".format(
+                    self.keys[0], vs, key, self.spec[key].voxel_size
+                )
             )
             assert self.spec[key].roi == roi, "Inconsistent ROIs in Multiply {0:} {1:} and {2:} {3:}".format(
                 self.keys[0], vs, key, self.spec[key].voxel_size
             )
             if self.target_spec.dtype is None:
-                assert (
-                    self.spec[key].dtype == dtype
-                ), "Inconsistent dtypes in Multiply {0:} {1:} and {2:} {3:}, but target dtype is not specified".format(
-                    self.keys[0], dtype, key, self.spec[key].dtype
+                assert self.spec[key].dtype == dtype, (
+                    "Inconsistent dtypes in Multiply {0:} {1:} and {2:} {3:}, but target dtype is not specified".format(
+                        self.keys[0], dtype, key, self.spec[key].dtype
+                    )
                 )
 
         if self.target_spec is not None:

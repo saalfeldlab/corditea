@@ -129,9 +129,7 @@ class BinaryToInstances(gp.BatchFilter):
                 spatial_mask = mask_data.squeeze(axis=channel_axes)
 
             # Process the spatial data
-            processed_spatial, num_features = self._process_single_array(
-                spatial_data, spatial_dims, spatial_mask
-            )
+            processed_spatial, num_features = self._process_single_array(spatial_data, spatial_dims, spatial_mask)
 
             # Restore original shape
             output_data = processed_spatial.reshape(data.shape)
@@ -147,8 +145,7 @@ class BinaryToInstances(gp.BatchFilter):
                 output_data = output_data.astype(data.dtype)
             else:
                 logger.warning(
-                    f"Original dtype {data.dtype} cannot hold max label {num_features}, "
-                    f"using {output_data.dtype}"
+                    f"Original dtype {data.dtype} cannot hold max label {num_features}, using {output_data.dtype}"
                 )
         else:
             # For floating point inputs, convert to appropriate integer type
@@ -158,10 +155,7 @@ class BinaryToInstances(gp.BatchFilter):
                 output_data = output_data.astype(np.uint32)
             # else keep as int64
 
-        logger.debug(
-            f"Connected components found: {num_features}, "
-            f"output dtype: {output_data.dtype}"
-        )
+        logger.debug(f"Connected components found: {num_features}, output dtype: {output_data.dtype}")
 
         # Create output array with same spec as source
         target_spec = source_array.spec.copy()
@@ -175,10 +169,7 @@ class BinaryToInstances(gp.BatchFilter):
         return output_batch
 
     def _process_single_array(
-        self,
-        data: np.ndarray,
-        spatial_dims: int,
-        mask: Optional[np.ndarray] = None
+        self, data: np.ndarray, spatial_dims: int, mask: Optional[np.ndarray] = None
     ) -> tuple[np.ndarray, int]:
         """Process a single spatial array (no channel dimensions)."""
 

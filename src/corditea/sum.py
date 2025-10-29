@@ -4,7 +4,7 @@ import gunpowder as gp
 
 
 class Sum(gp.BatchFilter):
-    '''Combine
+    """Combine
 
     Args:
 
@@ -15,10 +15,9 @@ class Sum(gp.BatchFilter):
 
         sum_array_spec(:class:``ArraySpec``, optional): The :class:``ArraySpec`` for the `sum_array_key`. If None or
             for missing values the :class:``ArraySpec`` of the first element in `array_keys` will be used
-    '''
+    """
 
     def __init__(self, array_keys, sum_array_key, sum_array_spec=None):
-
         self.array_keys = array_keys
         self.sum_array_key = sum_array_key
         self.sum_array_spec = sum_array_spec
@@ -50,7 +49,6 @@ class Sum(gp.BatchFilter):
         self.provides(self.sum_array_key, spec)
 
     def process(self, batch, request):
-
         if self.sum_array_key not in request:
             return
         sum_arr = batch.arrays[self.array_keys[0]].data
