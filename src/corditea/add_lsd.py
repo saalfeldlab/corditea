@@ -169,8 +169,28 @@ class AddLSD(BatchFilter):
             labels.remove(0)
             labels.append(new_label)
 
+        # Prepare segmentation data for get_lsds
+        # Remove singleton dimensions to match voxel_size dimensions
+        seg_data = segmentation_array.data
+
+        # If segmentation has more dimensions than voxel_size, squeeze singleton dims
+        if seg_data.ndim > dims:
+            # Find singleton dimensions at the beginning
+            leading_singletons = 0
+            for i in range(seg_data.ndim - dims):
+                if seg_data.shape[i] == 1:
+                    leading_singletons += 1
+                else:
+                    break
+
+            if leading_singletons > 0:
+                # Squeeze leading singleton dimensions
+                squeeze_axes = tuple(range(leading_singletons))
+                seg_data = np.squeeze(seg_data, axis=squeeze_axes)
+                logger.debug(f"Squeezed segmentation from {segmentation_array.data.shape} to {seg_data.shape}")
+
         descriptor = get_lsds(
-            segmentation=segmentation_array.data,
+            segmentation=seg_data,
             sigma=self.sigma,
             voxel_size=self.voxel_size,
             downsample=self.downsample,
