@@ -159,7 +159,10 @@ class AddLSD(BatchFilter):
         # If segmentation has more dimensions than voxel_size, squeeze singleton dims
         if seg_data.ndim > dims:
             seg_data = remove_leading_singleton_dims(seg_data)
-            
+
+        # Ensure seg_data is a contiguous numpy array to avoid ArrayType issues in get_lsds
+        seg_data = np.ascontiguousarray(seg_data)
+
         labels = list(np.unique(seg_data))
         if self.background_mode == "exclude" or self.background_mode == "zero":
             labels = [l for l in labels if l not in self.background_value]
@@ -229,8 +232,11 @@ class AddLSD(BatchFilter):
 
     def _create_mask(self, batch, mask, lsds, crop):
         mask = batch.arrays[mask].data
-        
+
         mask = remove_leading_singleton_dims(mask)
+
+        # Ensure mask is a contiguous numpy array
+        mask = np.ascontiguousarray(mask)
 
         mask = np.array([mask] * lsds.shape[0])
 
