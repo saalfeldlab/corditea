@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterable
+import random
 
 import numpy as np
 from gunpowder import BatchFilter
@@ -12,7 +13,7 @@ class GammaAugment(BatchFilter):
     An Augment to apply gamma noise
     """
 
-    def __init__(self, arrays, gamma_min, gamma_max):
+    def __init__(self, arrays, gamma_min, gamma_max, p=1.0):
         if not isinstance(arrays, Iterable):
             arrays = [
                 arrays,
@@ -20,11 +21,15 @@ class GammaAugment(BatchFilter):
         self.arrays = arrays
         self.gamma_min = gamma_min
         self.gamma_max = gamma_max
+        self.p = p
         assert self.gamma_max >= self.gamma_min
 
     def setup(self):
         for array in self.arrays:
             self.updates(array, self.spec[array])
+
+    def skip_node(self, request):
+        return random.random() > self.p
 
     def process(self, batch, request):
         sample_gamma_min = (max(self.gamma_min, 1.0 / self.gamma_min) - 1) * (-1) ** (self.gamma_min < 1)
