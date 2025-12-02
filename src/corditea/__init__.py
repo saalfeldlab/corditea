@@ -12,9 +12,11 @@ from corditea.lambda_filter import LambdaFilter
 from corditea.lambda_source import LambdaSource
 from corditea.log_batch import LogBatch
 from corditea.multiply import Multiply
+from corditea.normalize_output import NormalizeOutput
 from corditea.pad import Pad
 from corditea.random_location_with_integral_mask import RandomLocationWithIntegralMask
 from corditea.reject_efficiently import RejectEfficiently
 from corditea.sum import Sum
 from corditea.tf_run import Run
 from corditea.threshold import Threshold
+from corditea.unstack import Unstack
