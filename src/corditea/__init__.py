@@ -11,6 +11,7 @@ from corditea.intensity_crop import IntensityCrop
 from corditea.lambda_filter import LambdaFilter
 from corditea.lambda_source import LambdaSource
 from corditea.multiply import Multiply
+from corditea.pad import Pad
 from corditea.random_location_with_integral_mask import RandomLocationWithIntegralMask
 from corditea.reject_efficiently import RejectEfficiently
 from corditea.sum import Sum
