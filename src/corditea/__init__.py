@@ -10,6 +10,7 @@ from corditea.impulse_noise_augment import ImpulseNoiseAugment
 from corditea.intensity_crop import IntensityCrop
 from corditea.lambda_filter import LambdaFilter
 from corditea.lambda_source import LambdaSource
+from corditea.log_batch import LogBatch
 from corditea.multiply import Multiply
 from corditea.pad import Pad
 from corditea.random_location_with_integral_mask import RandomLocationWithIntegralMask
