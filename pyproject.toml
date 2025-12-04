@@ -20,7 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["gunpowder", "lsd-lite", "numpy", "scipy", "scikit-image"]
+dependencies = ["gunpowder", "lsd-lite@git+https://github.com/neptunes5thmoon/lsd-lite.git@fix/empty_labels", "numpy", "scipy", "scikit-image"]
 
 [project.optional-dependencies]
 
