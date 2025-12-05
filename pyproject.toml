@@ -33,6 +33,9 @@ Source = "https://github.com/saalfeldlab/corditea"
 [tool.hatch.version]
 path = "src/corditea/__about__.py"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.envs.default]
 type = "conda"
 command = "mamba"
