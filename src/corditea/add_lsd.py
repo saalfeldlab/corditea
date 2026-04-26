@@ -1,9 +1,10 @@
 from __future__ import absolute_import
-from lsd_lite import get_lsds
 from gunpowder import BatchFilter, Array, BatchRequest, Batch, Coordinate
 import logging
 import numpy as np
 from typing import Literal, Union
+
+from corditea._lsd_backends import compute_lsds
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ class AddLSD(BatchFilter):
         background_value: Union[int, tuple[int, ...]] = 255,
         sigma=5.0,
         downsample=1,
+        backend: Literal["lsd-lite", "lsd-jax"] = "lsd-lite",
     ):
         self.segmentation = segmentation
         self.descriptor = descriptor
@@ -78,6 +80,14 @@ class AddLSD(BatchFilter):
         if isinstance(background_value, int):
             background_value = (background_value,)
         self.background_value = background_value
+        self.backend = backend
+        if backend == "lsd-jax":
+            # Start the LSD service singleton in the main process before
+            # gunpowder forks PreCache workers; workers inherit the queue and
+            # delegate compute to the one JAX-on-GPU service process.
+            from corditea._lsd_service import ensure_service_started
+
+            ensure_service_started()
 
     def setup(self):
         spec = self.spec[self.segmentation].copy()
@@ -183,12 +193,13 @@ class AddLSD(BatchFilter):
             labels.append(new_label)
 
 
-        descriptor = get_lsds(
+        descriptor = compute_lsds(
             segmentation=seg_data,
             sigma=self.sigma,
             voxel_size=self.voxel_size,
-            downsample=self.downsample,
             labels=labels,
+            downsample=self.downsample,
+            backend=self.backend,
         )
 
         # get_lsds returns (channels, spatial...) format, so we need to slice only spatial dimensions
