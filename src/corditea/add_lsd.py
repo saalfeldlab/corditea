@@ -5,6 +5,7 @@ import numpy as np
 from typing import Literal, Union
 
 from corditea._lsd_backends import compute_lsds
+from corditea._lsd_service import ensure_service_started
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +86,6 @@ class AddLSD(BatchFilter):
             # Start the LSD service singleton in the main process before
             # gunpowder forks PreCache workers; workers inherit the queue and
             # delegate compute to the one JAX-on-GPU service process.
-            from corditea._lsd_service import ensure_service_started
-
             ensure_service_started()
 
     def setup(self):

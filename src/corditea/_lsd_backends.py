@@ -11,6 +11,9 @@ import os
 from typing import Literal, Sequence
 
 import numpy as np
+from lsd_lite import get_lsds
+
+from corditea._lsd_service import get_service
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +92,6 @@ def _compute_lsds_lite(
     labels,
     downsample: int,
 ) -> np.ndarray:
-    from lsd_lite import get_lsds
-
     return get_lsds(
         segmentation=segmentation,
         sigma=sigma,
@@ -116,12 +117,21 @@ def _compute_lsds_jax(
     # in the target label list. LSD_JAX skips label 0 internally (via labels[1:]
     # on sorted unique), so zeroed voxels get no descriptor.
     seg = np.ascontiguousarray(segmentation)
+    introduced_zero = False
     if labels is not None:
         keep = np.isin(seg, np.asarray(list(labels), dtype=seg.dtype))
         if not keep.all():
             seg = np.where(keep, seg, 0)
+            introduced_zero = True
 
-    n_distinct = int(np.unique(seg).size)
+    # Compute n_distinct without a second full-array np.unique. AddLSD already
+    # called np.unique to derive `labels`; after our np.where above, the unique
+    # values in seg are exactly `labels` (plus 0 if we zeroed any voxels).
+    if labels is not None:
+        n_distinct = len(labels) + (1 if introduced_zero else 0)
+    else:
+        # Fallback: caller didn't pre-compute labels, so we must scan ourselves.
+        n_distinct = int(np.unique(seg).size)
     # +1 headroom so a padding slot is always available
     max_labels = _next_power_of_two(n_distinct + 1)
 
@@ -135,8 +145,6 @@ def _compute_lsds_jax(
     # Plan B: if a service is running, route the call through it (one JAX
     # context for many gunpowder workers). Otherwise fall back to in-process
     # JAX — used by tests and by anyone who didn't bootstrap the service.
-    from corditea._lsd_service import get_service
-
     service = get_service()
     if service is not None:
         return service.compute(seg, sigma_scalar, iso_voxel, max_labels, channels, "gaussian")
