@@ -17,6 +17,22 @@ from corditea._lsd_service import get_service
 
 logger = logging.getLogger(__name__)
 
+_LSD_JAX_MISSING_MSG = (
+    "The 'lsd-jax' LSD backend requires the lsd-jax package, which is not "
+    "installed. It ships as an optional extra because it is a fork of a "
+    "private repository. Install it with `pip install 'corditea[jax]'` "
+    "(needs SSH access to the source), or use backend='lsd-lite' instead."
+)
+
+
+def _import_lsd_jax():
+    """Import the lsd-jax module, raising a helpful error if it's missing."""
+    try:
+        import lsd_jax
+    except ImportError as exc:
+        raise ImportError(_LSD_JAX_MISSING_MSG) from exc
+    return lsd_jax
+
 
 _jax_initialized = False
 
@@ -152,7 +168,7 @@ def _compute_lsds_jax(
     _ensure_jax_initialized()
     import jax.numpy as jnp
 
-    from lsd_jax import vectorized_LSD
+    vectorized_LSD = _import_lsd_jax().vectorized_LSD
 
     seg_jax = jnp.asarray(seg)[None, ...]  # (1, *spatial)
     out = vectorized_LSD(seg_jax, sigma_scalar, max_labels, iso_voxel, "gaussian", channels)

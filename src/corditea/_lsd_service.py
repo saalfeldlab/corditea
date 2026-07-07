@@ -271,7 +271,17 @@ def _service_loop(gpu_index: int, request_queue, ready_send) -> None:  # runs in
         # Module-level import inside the spawned process — fresh interpreter.
         import jax
         import jax.numpy as jnp
-        from lsd_jax import compute_LSD
+
+        try:
+            from lsd_jax import compute_LSD
+        except ImportError as exc:
+            msg = (
+                "The 'lsd-jax' LSD backend requires the lsd-jax package, which "
+                "is not installed. It ships as an optional extra (fork of a "
+                "private repo). Install with `pip install 'corditea[jax]'`, or "
+                "use backend='lsd-lite'."
+            )
+            raise ImportError(msg) from exc
 
         # Wrap compute_LSD in jit ourselves: upstream lsd_jax has the @jit on
         # compute_LSD commented out (only vectorized_LSD is jit'd). Bench showed
